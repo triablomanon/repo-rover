@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree src -L 2)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
