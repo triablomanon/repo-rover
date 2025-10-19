@@ -1,0 +1,45 @@
+# Conda environment for Repo Rover
+# Create: conda env create -f environment.yml
+# Activate: conda activate repo-rover
+
+name: repo-rover
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+  - git
+
+  # Install Python packages via pip (inside conda)
+  - pip:
+      # Core dependencies
+      - python-dotenv
+      - requests
+
+      # Google Gemini AI (latest SDK)
+      - google-genai>=1.0.0
+      - google-auth>=2.0.0
+      - google-auth-oauthlib>=1.0.0
+      - google-auth-httplib2>=0.1.0
+
+      # ChromaDB Vector Database (local)
+      - chromadb>=0.4.0
+
+      # ArXiv Paper Access
+      - arxiv
+
+      # GitHub Repository Handling
+      - GitPython
+
+      # Utility Libraries
+      - rich
+
+      # Fetch.ai Agent Framework (optional - for deployment)
+      - uagents
+
+      # Connecting to the frontend
+      - flask
+      - flask-cors
+      
