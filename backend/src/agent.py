@@ -100,11 +100,15 @@ class Response(Model):
 
 
 # Create agent
+# Use Railway public domain if deployed, otherwise localhost
+railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
+agent_endpoint = f"https://{railway_domain}/submit" if railway_domain else "http://localhost:8001/submit"
+
 agent = Agent(
     name="arxini_agent",
     seed=Config.FETCHAI_AGENT_SEED or "arxini_research_code_companion_seed",
     port=8001,
-    endpoint=["http://localhost:8001/submit"],
+    endpoint=[agent_endpoint],
     mailbox=True,  # Enable mailbox for AgentVerse connection
     enable_wallet_messaging=False  # Disable Almanac registration (stops funding loop)
 )
