@@ -1,0 +1,108 @@
+Repo Rover - Project Structure
+================================================================================================
+
+repo-rover/
+│
+├── frontend/                               # React/TypeScript Frontend (NEW)
+│   ├── components/
+│   │   ├── ChatPanel.tsx                  # Chat interface for Q&A with code
+│   │   ├── Icons.tsx                      # Reusable icon components
+│   │   └── PdfViewer.tsx                  # PDF viewer for research papers
+│   ├── services/
+│   │   └── geminiService.ts               # Gemini API integration
+│   ├── App.tsx                            # Main application component
+│   ├── index.html                         # HTML entry point
+│   ├── index.tsx                          # React entry point
+│   ├── metadata.json                      # Frontend metadata
+│   └── types.ts                           # TypeScript type definitions
+│
+├── backend/                                # Python Backend (MOVED from ./src)
+│   ├── src/
+│   │   ├── discovery/
+│   │   │   ├── __init__.py
+│   │   │   ├── paper_finder.py           # Finds papers on ArXiv
+│   │   │   └── repo_finder.py            # Finds GitHub repos via Papers with Code
+│   │   ├── synthesis/
+│   │   │   ├── __init__.py
+│   │   │   └── gemini_synthesizer.py     # Code synthesis with Gemini
+│   │   ├── understanding/
+│   │   │   ├── __init__.py
+│   │   │   ├── chroma_client.py          # ChromaDB wrapper with Google embeddings
+│   │   │   ├── code_indexer.py           # Indexes .py, .txt, .md files
+│   │   │   └── query_pipeline.py         # RAG pipeline (retrieval + generation)
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   ├── config.py                 # Configuration management (.env loader)
+│   │   │   ├── gcp_auth.py               # GCP OAuth for Gemini API
+│   │   │   └── repo_utils.py             # Git operations (clone, analyze)
+│   │   └── main.py                       # CLI entry point
+│   └── environment.yml                    # Conda environment (MOVED from root)
+│
+├── cloned_repos/                          # Downloaded GitHub repositories
+│   └── [repository-name]/                # e.g., gcn/, transformers/, etc.
+│
+├── chroma_db/                             # ChromaDB persistent storage
+│   └── chroma.sqlite3                    # SQLite database for vectors
+│
+├── papers/                                # Downloaded research papers
+│   └── [arxiv-id].pdf                    # e.g., 1706.03762.pdf
+│
+├── .claude/                               # Claude Code IDE settings
+│
+├── Documentation (Root Level)
+│   ├── README.md                         # Main project README (UPDATED)
+│   ├── QUICKSTART.md                     # Quick start guide
+│   └── PROJECT_STRUCTURE.txt             # This file (NEW)
+│
+├── Configuration Files (Root Level)
+│   ├── .env                              # Environment variables (SHARED)
+│   │                                     # - GEMINI_API_KEY
+│   │                                     # - GCP_PROJECT_ID, GCP_CLIENT_ID, GCP_CLIENT_SECRET
+│   │                                     # - CHROMA_PATH
+│   └── .gitignore                        # Git ignore (UPDATED with frontend ignores)
+│
+└── Temporary/Build Files (Gitignored)
+    ├── __pycache__/                      # Python bytecode cache
+    ├── *.sqlite3                         # ChromaDB databases
+    ├── gcp_token.json                    # OAuth token (auto-generated)
+    └── [future: node_modules/, dist/]    # Frontend builds (when implemented)
+
+================================================================================================
+
+KEY CHANGES FROM PREVIOUS STRUCTURE:
+================================================================================================
+
+1. MOVED: ./src → ./backend/src
+   - All Python code moved to backend folder
+   - No code changes needed - imports still work
+
+2. MOVED: ./environment.yml → ./backend/environment.yml
+   - Python dependencies now in backend folder
+
+3. CREATED: ./frontend folder with React/TypeScript structure
+   - 9 empty files ready for implementation
+   - Component structure follows best practices
+
+4. UPDATED: .gitignore
+   - Added frontend ignores (node_modules, dist, build)
+   - Added ChromaDB ignores (*.sqlite3)
+
+5. SHARED: .env, cloned_repos/, chroma_db/, papers/
+   - These remain in root for both frontend/backend access
+
+================================================================================================
+
+RUNNING THE APPLICATION:
+================================================================================================
+
+Backend (Python):
+  $ python backend/src/main.py --paper "Attention Is All You Need"
+  $ python backend/src/main.py --test
+
+Frontend (React) - Coming Soon:
+  $ cd frontend && npm install && npm run dev
+
+================================================================================================
+
+STATUS: ✅ Backend Fully Functional | 🔄 Frontend Structure Ready for Implementation
+================================================================================================

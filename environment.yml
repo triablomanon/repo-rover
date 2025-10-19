@@ -19,7 +19,10 @@ dependencies:
       - requests
 
       # Google Gemini AI
-      - google-genai>=0.2.0
+      - google-genai
+
+      # ChromaDB Vector Database (local)
+      - chromadb>=0.4.0
 
       # ArXiv Paper Access
       - arxiv
@@ -32,4 +35,8 @@ dependencies:
 
       # Fetch.ai Agent Framework (optional - for deployment)
       - uagents
+
+      # Connecting to the frontend
+      - flask
+      - flask-cors
       

@@ -49,8 +49,6 @@ papers
 *.log
 logs/
 
-# Vectara Cache
-.vectara_cache/
 
 # Test Coverage
 htmlcov/
@@ -62,3 +60,20 @@ coverage.xml
 # OS Files
 .DS_Store
 Thumbs.db
+gcp_token.json
+
+# Frontend (Node.js/React)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.parcel-cache/
+*.tsbuildinfo
+.npm
+.eslintcache
+
+# ChromaDB
+chroma_db/
+*.sqlite3
+chroma.sqlite3
