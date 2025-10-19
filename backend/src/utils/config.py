@@ -21,7 +21,8 @@ class Config:
     GCP_CLIENT_SECRET: Optional[str] = os.getenv("GCP_CLIENT_SECRET")
 
     FETCHAI_AGENT_SEED: str = os.getenv("FETCHAI_AGENT_SEED", "")
-    FETCHAI_AGENT_MAILBOX_KEY: str = os.getenv("FETCHAI_AGENT_MAILBOX_KEY", "")
+    FETCHAI_MAILBOX_KEY: str = os.getenv("FETCHAI_MAILBOX_KEY", "")
+    FETCHAI_MAILBOX_SERVER: str = os.getenv("FETCHAI_MAILBOX_SERVER", "wss://agentverse.ai")
     OPENALEX_EMAIL: Optional[str] = os.getenv("OPENALEX_EMAIL")
 
     # Model Settings

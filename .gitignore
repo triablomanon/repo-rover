@@ -35,6 +35,7 @@ ENV/
 *.swp
 *.swo
 *~
+.claude/
 
 # Cloned Repositories & papers
 cloned_repos/
