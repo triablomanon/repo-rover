@@ -1,0 +1,65 @@
+{
+  "main_concepts": [
+    {
+      "concept": "Adaptive Graph Traversal",
+      "description": "The paper's core idea: selecting different graph traversal strategies based on the type of user question. This is contrasted with existing methods that use a fixed strategy.",
+      "likely_files": [
+        "fast_graphrag/_graphrag.py"
+      ],
+      "search_keywords": [
+        "adaptive",
+        "traversal",
+        "planner",
+        "strategy",
+        "classify"
+      ]
+    },
+    {
+      "concept": "Question Classification",
+      "description": "A preliminary step proposed by the paper to categorize user questions into a four-class taxonomy, which then determines the appropriate traversal strategy.",
+      "likely_files": [
+        "fast_graphrag/_graphrag.py",
+        "fast_graphrag/_prompt.py"
+      ],
+      "search_keywords": [
+        "classify",
+        "question_type",
+        "taxonomy",
+        "router"
+      ]
+    },
+    {
+      "concept": "Graph-based Retrieval (GraphRAG)",
+      "description": "The foundational technique of using a knowledge graph to find and retrieve relevant facts to augment an LLM's context for generating answers.",
+      "likely_files": [
+        "fast_graphrag/_graphrag.py",
+        "fast_graphrag/_models.py"
+      ],
+      "search_keywords": [
+        "GraphRAG",
+        "retrieve",
+        "explore",
+        "graph",
+        "PageRank"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "GraphRAG (class)",
+      "purpose": "This class is the main orchestrator for the GraphRAG process, handling graph creation, data insertion, and the overall retrieval workflow. It serves as the 'unified interface and execution engine' mentioned in the paper.",
+      "file_hint": "fast_graphrag/_graphrag.py"
+    },
+    {
+      "function_name": "A potential _explore or _traverse method",
+      "purpose": "Implements the graph traversal logic. While the paper proposes multiple adaptive strategies, the README for this codebase specifies a fixed 'PageRank-based graph exploration' strategy.",
+      "file_hint": "fast_graphrag/_graphrag.py"
+    },
+    {
+      "function_name": "build_prompts (or similar in _prompt.py)",
+      "purpose": "Contains the prompt templates used to instruct the LLM for various tasks like entity extraction, summarization, and final answer generation based on retrieved graph context.",
+      "file_hint": "fast_graphrag/_prompt.py"
+    }
+  ],
+  "architecture_overview": "The codebase implements a general GraphRAG system, which aligns with the foundational concept of the paper. However, there is a significant divergence in the core contribution. The paper 'PolyG' proposes a 'query planner' that first classifies a question and then selects an adaptive traversal strategy. The 'fast-graphrag' codebase does not appear to implement this classification or adaptive traversal. Instead, its README explicitly mentions a single, fixed traversal method: 'PageRank-based graph exploration'. Therefore, the code represents a different, non-adaptive GraphRAG architecture rather than a direct implementation of the PolyG system."
+}

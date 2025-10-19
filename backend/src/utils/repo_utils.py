@@ -21,7 +21,14 @@ class RepoAnalyzer:
 
     def clone_repository(self, repo_url: str, depth: int = 1) -> Optional[Path]:
         """
-        Clone a repository with shallow clone for speed
+        Clone a repository with shallow clone and sparse-checkout to skip large files
+        
+        Skips:
+        - Data files: csv, tsv, parquet, h5, pkl, npy, npz, json (large), jsonl
+        - Model files: pth, pt, ckpt, safetensors, bin, onnx, pb
+        - Media files: jpg, jpeg, png, gif, mp4, avi, mov, mp3, wav
+        - Archives: zip, tar, gz, 7z
+        - Binaries: so, dylib, dll, exe
 
         Args:
             repo_url: GitHub repository URL
@@ -40,18 +47,100 @@ class RepoAnalyzer:
                 console.print(f"[yellow]Repository already exists, using cached version: {repo_path}[/yellow]")
                 return repo_path
 
-            console.print(f"[blue]Cloning repository: {repo_url}[/blue]")
-            Repo.clone_from(
+            console.print(f"[blue]Cloning repository (optimized - skipping large files): {repo_url}[/blue]")
+            
+            # Clone with sparse-checkout to exclude large files
+            repo = Repo.clone_from(
                 repo_url,
                 repo_path,
                 depth=depth,
-                single_branch=True
+                single_branch=True,
+                no_checkout=True  # Don't checkout files yet
             )
-            console.print(f"[green]✓ Cloned to: {repo_path}[/green]")
+            
+            # Enable sparse-checkout
+            with repo.config_writer() as config:
+                config.set_value('core', 'sparseCheckout', 'true')
+            
+            # Create sparse-checkout file to exclude large file types
+            sparse_checkout_path = repo_path / '.git' / 'info' / 'sparse-checkout'
+            sparse_checkout_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Patterns to exclude (! means exclude)
+            exclude_patterns = [
+                '/*',  # Include everything by default
+                '!*.csv',      # Data files
+                '!*.tsv',
+                '!*.parquet',
+                '!*.feather',
+                '!*.h5',
+                '!*.hdf5',
+                '!*.pkl',
+                '!*.pickle',
+                '!*.npy',
+                '!*.npz',
+                '!*.arrow',
+                '!*.tfrecord',
+                '!*.db',
+                '!*.sqlite',
+                '!*.sqlite3',
+                '!*.jsonl',    # Large JSONL files
+                '!*.pth',      # Model/checkpoint files
+                '!*.pt',
+                '!*.ckpt',
+                '!*.checkpoint',
+                '!*.safetensors',
+                '!*.bin',
+                '!*.onnx',
+                '!*.pb',
+                '!*.jpg',      # Media files
+                '!*.jpeg',
+                '!*.png',
+                '!*.gif',
+                '!*.bmp',
+                '!*.tiff',
+                '!*.mp4',
+                '!*.avi',
+                '!*.mov',
+                '!*.mkv',
+                '!*.mp3',
+                '!*.wav',
+                '!*.flac',
+                '!*.pdf',      # PDFs in repos (not the paper PDF)
+                '!*.zip',      # Archives
+                '!*.tar',
+                '!*.gz',
+                '!*.7z',
+                '!*.rar',
+                '!*.bz2',
+                '!*.so',       # Compiled binaries
+                '!*.dylib',
+                '!*.dll',
+                '!*.exe',
+                '!*.whl',      # Python distributions
+                '!*.egg',
+                '!data/*',     # Common data directories
+                '!datasets/*',
+                '!checkpoints/*',
+                '!models/**.pth',
+                '!models/**.pt',
+                '!weights/*',
+            ]
+            
+            with open(sparse_checkout_path, 'w') as f:
+                f.write('\n'.join(exclude_patterns))
+            
+            # Now checkout with sparse-checkout applied
+            repo.git.checkout('HEAD')
+            
+            console.print(f"[green]✓ Cloned to: {repo_path} (large files skipped for speed)[/green]")
             return repo_path
 
         except Exception as e:
             console.print(f"[red]Error cloning repository: {e}[/red]")
+            # Clean up partial clone
+            if repo_path.exists():
+                shutil.rmtree(repo_path)
             return None
 
     def get_repo_structure(self, repo_path: Path, max_depth: int = 3) -> Dict:

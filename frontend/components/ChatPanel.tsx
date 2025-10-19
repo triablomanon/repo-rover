@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { searchPaper, selectPaper, initPaper, sendChatMessage, resetSession, getShowcasePapers, initShowcasePaper } from '../services/geminiService';
 import type { Message, PaperInfo, PaperOption, ShowcasePaper } from '../types';
 import ShowcasePapers from './ShowcasePapers';
+import VoiceRecorder from './VoiceRecorder';
 import {
   HighlightIcon,
   AtSymbolIcon,
@@ -70,11 +71,7 @@ const WelcomeScreen: React.FC<{
 );
 
 const LoadingStages = [
-  "Finding paper...",
-  "Locating code repository...",
-  "Cloning repository...",
-  "Indexing code with ChromaDB...",
-  "Initializing query pipeline...",
+  "Thinking...",
 ];
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPaperVisible }) => {
@@ -161,7 +158,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
           return;
         }
 
-        // Handle selection
+        // Try to handle as selection first
         const result = await selectPaper(selection);
 
         if (result.selected && result.arxiv_id) {
@@ -215,19 +212,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
             };
             setMessages((prev) => [...prev, errorMessage]);
           }
-        } else if (result.message) {
-          // Error or other response
-          const aiMessage: Message = {
+          setIsLoading(false);
+          return;
+        } else {
+          // Invalid selection - treat as NEW search query instead
+          setAwaitingPaperSelection(false);
+          setPaperOptions([]);
+          
+          const infoMessage: Message = {
             id: (Date.now() + 1).toString(),
-            text: result.message,
+            text: "Starting a new search for your query...",
             sender: 'ai',
-            isError: !result.success,
           };
-          setMessages((prev) => [...prev, aiMessage]);
+          setMessages((prev) => [...prev, infoMessage]);
+          
+          // Fall through to paper search logic below (don't return here)
         }
-
-        setIsLoading(false);
-        return;
       }
 
       // STEP 2: First message - search for paper
@@ -492,11 +492,193 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
     return "Ask about the code implementation...";
   };
 
+  // Handler for voice transcription complete
+  const handleVoiceTranscription = async (transcription: string) => {
+    if (!transcription.trim() || isLoading) return;
+
+    // Process the transcription directly (same as if user typed and clicked send)
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: transcription,
+      sender: 'user',
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput(''); // Clear input
+    setIsLoading(true);
+
+    try {
+      // STEP 1: User is selecting from paper options
+      if (awaitingPaperSelection) {
+        const selection = transcription.trim();
+
+        // Handle cancel
+        if (selection.toLowerCase() === 'cancel') {
+          setAwaitingPaperSelection(false);
+          setPaperOptions([]);
+          const aiMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: "Paper selection cancelled. Start over with a new search.",
+            sender: 'ai',
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+          setIsLoading(false);
+          return;
+        }
+
+        // Handle selection
+        const result = await selectPaper(selection);
+
+        if (result.selected && result.arxiv_id) {
+          setAwaitingPaperSelection(false);
+          setPaperOptions([]);
+
+          const confirmMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: `✓ Selected Paper: ${result.title}`,
+            sender: 'ai',
+          };
+          setMessages((prev) => [...prev, confirmMessage]);
+
+          if (result.pdf_url && result.title) {
+            const paperInfo: PaperInfo = {
+              title: result.title,
+              arxiv_id: result.arxiv_id || '',
+              authors: [],
+              summary: '',
+              pdf_url: result.pdf_url,
+              published: '',
+            };
+            onPaperLoaded(paperInfo);
+            onShowPaper();
+          }
+
+          setLoadingStage(0);
+          const initResult = await initPaper(result.arxiv_id || '');
+          if (initResult.success && initResult.paper_info) {
+            setIsPaperInitialized(true);
+            setCurrentPaper(initResult.paper_info);
+            onPaperLoaded(initResult.paper_info);
+
+            const successMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              text: `✓ Code analysis complete! Indexed ${initResult.indexed_files} code files.\n\nAsk me anything about the implementation!`,
+              sender: 'ai',
+            };
+            setMessages((prev) => [...prev, successMessage]);
+          } else {
+            const errorMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              text: initResult.message || 'Failed to initialize paper. Please try again.',
+              sender: 'ai',
+              isError: true,
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+          }
+        } else if (result.message) {
+          const aiMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: result.message,
+            sender: 'ai',
+            isError: !result.success,
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+        }
+
+        setIsLoading(false);
+        return;
+      }
+
+      // STEP 2: First message - search for paper
+      if (!isPaperInitialized) {
+        const result = await searchPaper(transcription);
+
+        if (result.needs_selection && result.options) {
+          setAwaitingPaperSelection(true);
+          setPaperOptions(result.options);
+
+          const aiMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: `Found ${result.options.length} papers. Which one would you like to analyze?`,
+            sender: 'ai',
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+        } else if (result.success && result.paper) {
+          setLoadingStage(0);
+          const initResult = await initPaper(result.paper.arxiv_id);
+
+          if (initResult.success && initResult.paper_info) {
+            setIsPaperInitialized(true);
+            setCurrentPaper(initResult.paper_info);
+            onPaperLoaded(initResult.paper_info);
+            onShowPaper();
+
+            const successMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              text: `✓ Code analysis complete! Indexed ${initResult.indexed_files} code files.\n\nAsk me anything about the implementation!`,
+              sender: 'ai',
+            };
+            setMessages((prev) => [...prev, successMessage]);
+          } else {
+            const errorMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              text: initResult.message || 'Failed to initialize paper. Please try again.',
+              sender: 'ai',
+              isError: true,
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+          }
+        } else {
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: result.message || 'Failed to find paper. Try a different query or ArXiv ID.',
+            sender: 'ai',
+            isError: true,
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        }
+
+        setIsLoading(false);
+        return;
+      }
+
+      // STEP 3: Subsequent messages - Q&A about code
+      const response = await sendChatMessage(transcription);
+
+      if (response.success && response.answer) {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.answer,
+          sender: 'ai',
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.message || 'Failed to get a response. Please try again.',
+          sender: 'ai',
+          isError: true,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm having trouble connecting right now. Please try again later.",
+        sender: 'ai',
+        isError: true,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={`flex flex-col flex-1 h-screen bg-gradient-to-br from-slate-50 via-white to-rose-50/30 ${isPaperVisible ? 'lg:w-1/2' : 'w-full'}`}>
       <header className="flex-shrink-0 h-20 border-b border-slate-200 flex items-center justify-between px-6 bg-white/90 backdrop-blur shadow-sm">
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 truncate">ArXini - Your AI research code assistant</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 truncate">ArXini - Your AI research assistant</h1>
         </div>
         <div className="flex items-center gap-3">
           {currentPaper && !isPaperVisible && (
@@ -599,7 +781,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
                       <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                       <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"></div>
                     </div>
-                    <p className="text-base text-slate-500 mt-2">This may take 30-60 seconds...</p>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-1">
@@ -623,16 +804,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={getPlaceholder()}
-              className="w-full pl-5 pr-16 py-4 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm"
+              className="w-full pl-5 pr-28 py-4 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm"
               disabled={isLoading}
             />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center hover:from-blue-600 hover:to-blue-700 disabled:from-slate-300 disabled:to-slate-400 transition-all shadow-sm"
-              disabled={!input.trim() || isLoading}
-            >
-              <ArrowUpIcon className="w-5 h-5 transform -rotate-90" />
-            </button>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <VoiceRecorder
+                onTranscriptionComplete={handleVoiceTranscription}
+                isDisabled={isLoading}
+              />
+              <button
+                type="submit"
+                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center hover:from-blue-600 hover:to-blue-700 disabled:from-slate-300 disabled:to-slate-400 transition-all shadow-sm"
+                disabled={!input.trim() || isLoading}
+              >
+                <ArrowUpIcon className="w-5 h-5 transform -rotate-90" />
+              </button>
+            </div>
           </form>
         </div>
       </footer>

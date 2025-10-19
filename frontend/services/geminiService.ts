@@ -96,6 +96,8 @@ export const selectPaper = async (selection: number | string): Promise<SelectPap
 export const initPaper = async (arxivId: string): Promise<InitPaperResponse> => {
   try {
     const sessionId = await getSessionId();
+    console.log('[initPaper] Using session ID:', sessionId);
+    console.log('[initPaper] ArXiv ID:', arxivId);
 
     const res = await fetch(`${API_URL}/init-paper`, {
       method: "POST",
@@ -104,6 +106,7 @@ export const initPaper = async (arxivId: string): Promise<InitPaperResponse> => 
     });
 
     const data = await res.json();
+    console.log('[initPaper] Response:', data);
     return data;
   } catch (err) {
     console.error("Error initializing paper:", err);
@@ -121,6 +124,8 @@ export const initPaper = async (arxivId: string): Promise<InitPaperResponse> => 
 export const sendChatMessage = async (message: string): Promise<ChatResponse> => {
   try {
     const sessionId = await getSessionId();
+    console.log('[sendChatMessage] Using session ID:', sessionId);
+    console.log('[sendChatMessage] Message:', message);
 
     const res = await fetch(`${API_URL}/chat`, {
       method: "POST",
@@ -129,6 +134,7 @@ export const sendChatMessage = async (message: string): Promise<ChatResponse> =>
     });
 
     const data = await res.json();
+    console.log('[sendChatMessage] Response:', JSON.stringify(data, null, 2));
     return data;
   } catch (err) {
     console.error("Error sending chat message:", err);
@@ -242,6 +248,34 @@ export const initShowcasePaper = async (arxivId: string): Promise<InitShowcasePa
       success: false,
       error: "Network error",
       message: "Failed to initialize showcase paper",
+    };
+  }
+};
+
+/**
+ * Transcribe audio to text using Gemini multimodal API
+ */
+export const transcribeAudio = async (audioBlob: Blob): Promise<{ success: boolean; transcription?: string; message?: string }> => {
+  try {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+
+    const res = await fetch(`${API_URL}/transcribe-audio`, {
+      method: "POST",
+      body: formData, // Don't set Content-Type header, browser will set it with boundary
+    });
+
+    if (!res.ok) {
+      throw new Error(`Transcription failed: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error transcribing audio:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "Failed to transcribe audio",
     };
   }
 };

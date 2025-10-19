@@ -18,8 +18,8 @@
     "chroma_indexed_at": "2025-10-19T09:15:21.254201+00:00",
     "chroma_file_count": 61,
     "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2310.02170.json",
-    "last_accessed": "2025-10-19T11:13:16.338640+00:00",
-    "access_count": 5,
+    "last_accessed": "2025-10-19T18:42:16.656433+00:00",
+    "access_count": 8,
     "created_at": "2025-10-19T09:15:21.256973+00:00"
   },
   "1609.02907": {
@@ -38,8 +38,8 @@
     "chroma_indexed_at": "2025-10-19T10:02:02.472251+00:00",
     "chroma_file_count": null,
     "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\1609.02907.json",
-    "last_accessed": "2025-10-19T15:26:09.018809+00:00",
-    "access_count": 3,
+    "last_accessed": "2025-10-19T19:02:05.305023+00:00",
+    "access_count": 15,
     "created_at": "2025-10-19T10:02:02.472251+00:00"
   },
   "2510.07962": {
@@ -60,8 +60,8 @@
     "chroma_indexed_at": "2025-10-19T10:41:23.510466+00:00",
     "chroma_file_count": 14,
     "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2510.07962.json",
-    "last_accessed": "2025-10-19T11:11:45.855859+00:00",
-    "access_count": 2,
+    "last_accessed": "2025-10-19T17:39:06.073937+00:00",
+    "access_count": 3,
     "created_at": "2025-10-19T10:41:23.510923+00:00"
   },
   "2405.16506": {
@@ -84,8 +84,8 @@
     "chroma_indexed_at": "2025-10-19T10:50:41.690404+00:00",
     "chroma_file_count": 26,
     "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2405.16506.json",
-    "last_accessed": "2025-10-19T11:13:29.961547+00:00",
-    "access_count": 2,
+    "last_accessed": "2025-10-19T16:47:29.306189+00:00",
+    "access_count": 5,
     "created_at": "2025-10-19T10:50:41.690404+00:00"
   },
   "2510.14974": {
@@ -108,8 +108,76 @@
     "chroma_indexed_at": "2025-10-19T11:17:35.056568+00:00",
     "chroma_file_count": 139,
     "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2510.14974.json",
-    "last_accessed": "2025-10-19T11:17:35.056568+00:00",
-    "access_count": 1,
+    "last_accessed": "2025-10-19T17:35:47.800607+00:00",
+    "access_count": 2,
     "created_at": "2025-10-19T11:17:35.056568+00:00"
+  },
+  "2508.07807": {
+    "arxiv_id": "2508.07807",
+    "title": "Topological Feature Compression for Molecular Graph Neural Networks",
+    "authors": [
+      "Rahul Khorana"
+    ],
+    "summary": "Recent advances in molecular representation learning have produced highly\neffective encodings of molecules for numerous cheminformatics and\nbioinformatics tasks. However, extracting general chemical insight while\nbalancing predictive accuracy, interpretability, and computational efficiency\nremains a major challenge. In this work, we introduce a novel Graph Neural\nNetwork (GNN) architecture that combines compressed higher-order topological\nsignals with standard molecular features. Our approach captures global\ngeometric information while preserving computational tractability and\nhuman-interpretable structure. We evaluate our model across a range of\nbenchmarks, from small-molecule datasets to complex material datasets, and\ndemonstrate superior performance using a parameter-efficient architecture. We\nachieve the best performing results in both accuracy and robustness across\nalmost all benchmarks. We open source all code \\footnote{All code and results\ncan be found on Github https://github.com/rahulkhorana/TFC-PACT-Net}.",
+    "pdf_url": "http://arxiv.org/pdf/2508.07807v2",
+    "pdf_path": "papers\\2508.07807.pdf",
+    "repo_url": "https://github.com/rahulkhorana/TFC-PACT-Net",
+    "repo_path": "cloned_repos\\TFC-PACT-Net",
+    "chroma_collection": "2508.07807",
+    "chroma_indexed_at": "2025-10-19T17:28:19.965068+00:00",
+    "chroma_file_count": 236,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2508.07807.json",
+    "last_accessed": "2025-10-19T17:31:13.526914+00:00",
+    "access_count": 2,
+    "created_at": "2025-10-19T17:28:19.965068+00:00"
+  },
+  "2504.02112": {
+    "arxiv_id": "2504.02112",
+    "title": "PolyG: Effective and Efficient GraphRAG with Adaptive Graph Traversal",
+    "authors": [
+      "Renjie Liu",
+      "Haitian Jiang",
+      "Xiao Yan",
+      "Bo Tang",
+      "Jinyang Li"
+    ],
+    "summary": "GraphRAG enhances large language models (LLMs) to generate quality answers\nfor user questions by retrieving related facts from external knowledge graphs.\nExisting GraphRAG methods adopt a fixed graph traversal strategy for fact\nretrieval but we observe that user questions come in different types and\nrequire different graph traversal strategies. As such, existing GraphRAG\nmethods are limited in effectiveness (i.e., quality of the generated answers)\nand/or efficiency (i.e., response time or the number of used tokens). In this\npaper, we propose to classify the questions according to a complete four-class\ntaxonomy and adaptively select the appropriate graph traversal strategy for\neach type of questions. Our system PolyG is essentially a query planner for\nGraphRAG and can handle diverse questions with an unified interface and\nexecution engine. Compared with SOTA GraphRAG methods, PolyG achieves an\noverall win rate of 75% on generation quality and a speedup up to 4x on\nresponse time.",
+    "pdf_url": "http://arxiv.org/pdf/2504.02112v1",
+    "pdf_path": "papers\\2504.02112.pdf",
+    "repo_url": "https://github.com/circlemind-ai/fast-graphrag",
+    "repo_path": "cloned_repos\\fast-graphrag",
+    "chroma_collection": "2504.02112",
+    "chroma_indexed_at": "2025-10-19T18:03:11.067312+00:00",
+    "chroma_file_count": 42,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2504.02112.json",
+    "last_accessed": "2025-10-19T18:52:46.110185+00:00",
+    "access_count": 5,
+    "created_at": "2025-10-19T18:03:11.074820+00:00"
+  },
+  "1706.03762": {
+    "arxiv_id": "1706.03762",
+    "title": "Attention Is All You Need",
+    "authors": [
+      "Ashish Vaswani",
+      "Noam Shazeer",
+      "Niki Parmar",
+      "Jakob Uszkoreit",
+      "Llion Jones",
+      "Aidan N. Gomez",
+      "Lukasz Kaiser",
+      "Illia Polosukhin"
+    ],
+    "summary": "The dominant sequence transduction models are based on complex recurrent or\nconvolutional neural networks in an encoder-decoder configuration. The best\nperforming models also connect the encoder and decoder through an attention\nmechanism. We propose a new simple network architecture, the Transformer, based\nsolely on attention mechanisms, dispensing with recurrence and convolutions\nentirely. Experiments on two machine translation tasks show these models to be\nsuperior in quality while being more parallelizable and requiring significantly\nless time to train. Our model achieves 28.4 BLEU on the WMT 2014\nEnglish-to-German translation task, improving over the existing best results,\nincluding ensembles by over 2 BLEU. On the WMT 2014 English-to-French\ntranslation task, our model establishes a new single-model state-of-the-art\nBLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction\nof the training costs of the best models from the literature. We show that the\nTransformer generalizes well to other tasks by applying it successfully to\nEnglish constituency parsing both with large and limited training data.",
+    "pdf_url": "http://arxiv.org/pdf/1706.03762v7",
+    "pdf_path": "papers\\1706.03762.pdf",
+    "repo_url": "https://github.com/tensorflow/tensor2tensor",
+    "repo_path": "cloned_repos\\tensor2tensor",
+    "chroma_collection": "1706.03762",
+    "chroma_indexed_at": "2025-10-19T18:32:01.796053+00:00",
+    "chroma_file_count": 344,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\1706.03762.json",
+    "last_accessed": "2025-10-19T18:32:01.796053+00:00",
+    "access_count": 1,
+    "created_at": "2025-10-19T18:32:01.796053+00:00"
   }
 }

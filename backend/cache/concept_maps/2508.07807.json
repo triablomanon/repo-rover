@@ -1,0 +1,92 @@
+{
+  "main_concepts": [
+    {
+      "concept": "Compressed Higher-Order Topological Features",
+      "description": "The paper's core contribution: a method to generate and compress global topological signals from molecular graphs. The codebase refers to this as the 'polyatomic' representation.",
+      "likely_files": [
+        "data/polyatomic_featurize.py",
+        "data/data_handling.py"
+      ],
+      "search_keywords": [
+        "polyatomic",
+        "featurize",
+        "topological",
+        "compress",
+        "higher-order"
+      ]
+    },
+    {
+      "concept": "PACT-Net GNN Architecture",
+      "description": "The novel Graph Neural Network model that combines the compressed topological signals with standard molecular features for prediction. The command line argument `--model polyatomic` points to this implementation.",
+      "likely_files": [
+        "models/polyatomic.py",
+        "models/gnn.py"
+      ],
+      "search_keywords": [
+        "PACTNet",
+        "PolyatomicModel",
+        "GNN",
+        "forward",
+        "graph convolution"
+      ]
+    },
+    {
+      "concept": "Molecular Featurization Pipeline",
+      "description": "The process of converting raw molecular data (e.g., SMILES strings) into graph objects. This includes generating both standard atom/bond features and the novel topological features.",
+      "likely_files": [
+        "data/featurize.py",
+        "data/polyatomic_featurize.py",
+        "data/loaders.py",
+        "data/data_handling.py"
+      ],
+      "search_keywords": [
+        "mol_to_graph",
+        "get_features",
+        "featurizer",
+        "atom_features",
+        "bond_features"
+      ]
+    },
+    {
+      "concept": "Training and Evaluation Framework",
+      "description": "The end-to-end pipeline for running experiments. It handles data loading for specific benchmarks (e.g., 'esol'), model training, and performance evaluation.",
+      "likely_files": [
+        "main.py",
+        "runners.py",
+        "training/training_pipeline.py",
+        "training/train_eval.py"
+      ],
+      "search_keywords": [
+        "train",
+        "evaluate",
+        "pipeline",
+        "loss",
+        "optimizer",
+        "DataLoader"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "PolyatomicModel or PACTNet (Class)",
+      "purpose": "The main PyTorch model class that implements the paper's GNN architecture, taking graph data and polyatomic features as input to produce predictions.",
+      "file_hint": "models/polyatomic.py"
+    },
+    {
+      "function_name": "PolyatomicFeaturizer (Class or function)",
+      "purpose": "The core implementation for generating the compressed topological features from a molecule, which are then attached to the graph data object.",
+      "file_hint": "data/polyatomic_featurize.py"
+    },
+    {
+      "function_name": "run_training or training_pipeline",
+      "purpose": "Orchestrates the entire training and cross-validation loop for a given dataset and model configuration.",
+      "file_hint": "training/training_pipeline.py or runners.py"
+    },
+    {
+      "function_name": "main.py",
+      "purpose": "The main entry point for the codebase. It parses command-line arguments like `--model`, `--rep`, and `--dataset` to configure and launch an experiment.",
+      "file_hint": "main.py"
+    }
+  ],
+  "architecture_overview": "The codebase is structured around a central training pipeline initiated from `main.py`. Command-line arguments determine which dataset and model to use. Data handling is managed by the `data/` directory, where `data/loaders.py` fetches the benchmark data, and `data/featurize.py` and `data/polyatomic_featurize.py` create the standard and topological features, respectively. The core GNN model, likely named `PolyatomicModel` or `PACTNet`, is defined in `models/polyatomic.py` and utilizes base GNN layers from `models/gnn.py`. The `training/` directory contains the logic for the training/evaluation loop, which is called by a high-level `runners.py` script to execute the full experiment."
+}

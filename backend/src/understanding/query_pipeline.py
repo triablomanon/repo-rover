@@ -66,13 +66,9 @@ class QueryPipeline:
         try:
             console.print(f"\n[bold blue]Processing query: {question}[/bold blue]")
 
-            # Step 1: Search for relevant code using ChromaDB
-            # Optionally use repository-scoped metadata filter if available
-            # Example: restrict to current repo or file types
+            # Step 1: Search for relevant code using ChromaDB (SINGLE SEARCH - OPTIMIZED)
             metadata_filter = None
-            # if you want to filter by metadata, use a dict like:
-            # metadata_filter = {"file_type": ".py"}
-
+            
             search_results = self.chroma.search(
                 question,
                 num_results=num_code_results,
@@ -86,8 +82,46 @@ class QueryPipeline:
                     "confidence": "low"
                 }
 
-            # Step 2: Format code context
-            code_context = self.chroma.get_relevant_code(question, num_code_results)
+            # Step 2: Format code context from already-retrieved results (NO DUPLICATE SEARCH)
+            formatted_results = []
+            for i, result in enumerate(search_results, 1):
+                metadata = result.get("metadata", {})
+                file_path = metadata.get("file_path") or result.get("file_path") or result.get("document_title") or result.get("document_id")
+                line_start = metadata.get("line_start")
+                line_end = metadata.get("line_end")
+                
+                # Clean up file path - remove cloned_repos/repo_name/ prefix for cleaner display
+                if file_path and isinstance(file_path, str):
+                    if 'cloned_repos' in file_path:
+                        # Extract path after cloned_repos/repo_name/
+                        parts = file_path.split('cloned_repos/')
+                        if len(parts) > 1:
+                            remaining = parts[1]
+                            # Skip the repo name (first directory)
+                            path_parts = remaining.split('/', 1)
+                            if len(path_parts) > 1:
+                                file_path = path_parts[1]  # Relative path within repo
+                    
+                    # Also handle Windows paths
+                    if 'cloned_repos\\' in file_path:
+                        parts = file_path.split('cloned_repos\\')
+                        if len(parts) > 1:
+                            remaining = parts[1]
+                            path_parts = remaining.split('\\', 1)
+                            if len(path_parts) > 1:
+                                file_path = path_parts[1].replace('\\', '/')  # Normalize to forward slashes
+                
+                if file_path:
+                    if line_start and line_end:
+                        header = f"[SOURCE {i}: {file_path}:{line_start}-{line_end}]"
+                    else:
+                        header = f"[SOURCE {i}: {file_path}]"
+                else:
+                    header = f"[SOURCE {i}]"
+                
+                formatted_results.append(f"{header}\n{result['text']}\n")
+            
+            code_context = "\n".join(formatted_results)
 
             # Step 3: Generate answer using Gemini
             answer = self.gemini.answer_question(

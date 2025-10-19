@@ -356,3 +356,58 @@ Return ONLY the Python code, properly formatted.
             "key_functions": [],
             "architecture_overview": f"Implementation of {paper_info['title']}"
         }
+
+    def transcribe_audio(self, audio_file_path: str) -> str:
+        """
+        Transcribe audio file to text using Gemini multimodal API
+
+        Args:
+            audio_file_path: Path to audio file (WebM, WAV, MP3, etc.)
+
+        Returns:
+            Transcribed text
+
+        Raises:
+            Exception if transcription fails
+        """
+        try:
+            console.print(f"[blue]Transcribing audio with Gemini...[/blue]")
+
+            # Read audio file as bytes
+            with open(audio_file_path, 'rb') as f:
+                audio_data = f.read()
+
+            # Determine MIME type based on file extension
+            import mimetypes
+            mime_type, _ = mimetypes.guess_type(audio_file_path)
+            if not mime_type or not mime_type.startswith('audio/'):
+                # Default to webm for browser recordings
+                mime_type = 'audio/webm'
+
+            console.print(f"[blue]Audio file size: {len(audio_data)} bytes, MIME: {mime_type}[/blue]")
+
+            # Create inline data part
+            audio_part = types.Part.from_bytes(
+                data=audio_data,
+                mime_type=mime_type
+            )
+
+            # Generate transcription using inline data
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=[
+                    audio_part,
+                    "Transcribe this audio verbatim. Return only the transcribed text without any additional commentary, formatting, or quotes."
+                ]
+            )
+
+            transcription = response.text.strip()
+            console.print(f"[green]✓ Transcription complete: {len(transcription)} characters[/green]")
+
+            return transcription
+
+        except Exception as e:
+            console.print(f"[red]✗ Transcription error: {e}[/red]")
+            import traceback
+            traceback.print_exc()
+            raise Exception(f"Failed to transcribe audio: {str(e)}")

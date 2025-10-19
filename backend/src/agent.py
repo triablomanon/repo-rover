@@ -5,6 +5,7 @@ Deploys the paper analysis system as a discoverable agent
 from uagents import Agent, Context, Model
 from typing import Optional, List, Dict, Any
 import sys
+import os
 from pathlib import Path
 
 # Add parent directory to path for imports

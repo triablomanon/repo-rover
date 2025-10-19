@@ -1,0 +1,79 @@
+{
+  "main_concepts": [
+    {
+      "concept": "Transformer Architecture",
+      "description": "The core encoder-decoder architecture proposed in the paper, which dispenses with recurrence and convolutions in favor of self-attention mechanisms. It is composed of stacked encoder and decoder layers.",
+      "likely_files": [
+        "tensor2tensor/models/transformer.py",
+        "tensor2tensor/bin/t2t_trainer.py"
+      ],
+      "search_keywords": [
+        "Transformer",
+        "T2TModel",
+        "encoder",
+        "decoder"
+      ]
+    },
+    {
+      "concept": "Multi-Head Attention",
+      "description": "The paper's primary mechanism, which allows the model to jointly attend to information from different representation subspaces. It consists of several parallel 'scaled dot-product attention' layers.",
+      "likely_files": [
+        "tensor2tensor/layers/common_attention.py",
+        "tensor2tensor/models/transformer.py"
+      ],
+      "search_keywords": [
+        "multihead_attention",
+        "dot_product_attention",
+        "scaled_dot_product_attention"
+      ]
+    },
+    {
+      "concept": "Positional Encoding",
+      "description": "A method to inject sequence order information, using sine and cosine functions of different frequencies. This is necessary because the self-attention mechanism itself is permutation-invariant.",
+      "likely_files": [
+        "tensor2tensor/layers/common_attention.py",
+        "tensor2tensor/models/transformer.py"
+      ],
+      "search_keywords": [
+        "positional_encoding",
+        "add_timing_signal",
+        "get_timing_signal_1d"
+      ]
+    },
+    {
+      "concept": "Encoder and Decoder Stacks",
+      "description": "The high-level structure of the model. The encoder maps an input sequence to continuous representations, and the decoder generates an output sequence using the encoder's output.",
+      "likely_files": [
+        "tensor2tensor/models/transformer.py"
+      ],
+      "search_keywords": [
+        "transformer_encoder",
+        "transformer_decoder",
+        "stack"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "Transformer",
+      "purpose": "The main class that defines the entire Transformer model, inheriting from T2TModel and registering itself with the library.",
+      "file_hint": "tensor2tensor/models/transformer.py"
+    },
+    {
+      "function_name": "multihead_attention",
+      "purpose": "A function that implements the multi-head scaled dot-product attention mechanism, a core component of every layer.",
+      "file_hint": "tensor2tensor/layers/common_attention.py"
+    },
+    {
+      "function_name": "transformer_ffn_layer",
+      "purpose": "Implements the Position-wise Feed-Forward Network, which is the second major sub-layer in each encoder and decoder layer.",
+      "file_hint": "tensor2tensor/models/transformer.py"
+    },
+    {
+      "function_name": "add_timing_signal",
+      "purpose": "The function responsible for generating and adding the positional encodings to the input embeddings.",
+      "file_hint": "tensor2tensor/layers/common_attention.py"
+    }
+  ],
+  "architecture_overview": "The Tensor2Tensor library implements the Transformer as a registered `T2TModel`, making it a plug-and-play component within the T2T ecosystem. The core implementation is expected in `tensor2tensor/models/transformer.py`. This file defines the overall encoder-decoder structure. Foundational components like Multi-Head Attention and Positional Encodings (called 'timing signals') are implemented as reusable functions in a shared location, likely `tensor2tensor/layers/common_attention.py`. The model's behavior is controlled by a `HParams` object, and it's trained, evaluated, and used for inference via command-line scripts like `t2t_trainer.py` and `t2t_decoder.py`."
+}

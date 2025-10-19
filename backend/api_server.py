@@ -6,8 +6,9 @@ import sys
 import os
 from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# Add backend and src directories to path for imports
+sys.path.insert(0, str(Path(__file__).parent))  # backend/
+sys.path.insert(0, str(Path(__file__).parent / "src"))  # backend/src/
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -496,6 +497,7 @@ def init_paper():
 
         rover = RoverInstance(pipeline, paper_info, repo_path)
 
+        logger.info(f"Updating session {session_id} with rover instance")
         session_manager.update_session(
             session_id,
             rover_instance=rover,
@@ -504,6 +506,7 @@ def init_paper():
             is_initialized=True,
             initialization_error=None
         )
+        logger.info(f"Session updated successfully - is_initialized: True")
 
         # Save to cache if this was a fresh initialization
         if not from_cache:
@@ -566,6 +569,8 @@ def chat():
         session_id = data.get("session_id")
         message = data.get("message", "").strip()
 
+        logger.info(f"Chat request - Session ID: {session_id}, Message: {message[:50]}...")
+
         if not session_id or not message:
             return jsonify({
                 "success": False,
@@ -574,12 +579,16 @@ def chat():
 
         session = session_manager.get_session(session_id)
         if not session:
+            logger.error(f"Session not found: {session_id}")
             return jsonify({
                 "success": False,
                 "error": "Invalid session"
             }), 404
 
+        logger.info(f"Session found - is_initialized: {session.is_initialized}, rover_instance: {session.rover_instance is not None}")
+
         if not session.is_initialized or not session.rover_instance:
+            logger.error(f"Session not initialized - is_initialized: {session.is_initialized}, has_rover: {session.rover_instance is not None}")
             return jsonify({
                 "success": False,
                 "error": "Not initialized",
@@ -734,12 +743,13 @@ def init_showcase_paper():
     """Initialize a session with a pre-indexed showcase paper"""
     try:
         data = request.get_json()
+        session_id = data.get("session_id")
         arxiv_id = data.get("arxiv_id")
         
-        if not arxiv_id:
+        if not session_id or not arxiv_id:
             return jsonify({
                 "success": False,
-                "error": "Missing arxiv_id"
+                "error": "Missing session_id or arxiv_id"
             }), 400
         
         # Load showcase metadata
@@ -768,13 +778,14 @@ def init_showcase_paper():
                 "error": "Paper not found in showcase"
             }), 404
         
-        # Get or create session
-        session_id = request.cookies.get('session_id')
+        # Get session (should already exist from frontend)
         session = session_manager.get_session(session_id)
         
         if not session:
-            session_id = session_manager.create_session()
-            session = session_manager.get_session(session_id)
+            return jsonify({
+                "success": False,
+                "error": "Invalid session"
+            }), 404
         
         # Check if paper is already in cache
         cache = get_cache()
@@ -854,6 +865,7 @@ def init_showcase_paper():
         rover = RoverInstance(pipeline, paper_info, repo_path)
         
         # Store in session using update_session
+        logger.info(f"Updating session {session_id} with showcase paper rover instance")
         session_manager.update_session(
             session_id,
             rover_instance=rover,
@@ -865,15 +877,12 @@ def init_showcase_paper():
         
         logger.info(f"Showcase paper {arxiv_id} initialization complete!")
         
-        response = jsonify({
+        return jsonify({
             "success": True,
             "message": f"Successfully loaded '{paper_info['title']}'",
             "paper_info": paper_info,
             "indexed_files": cached_paper.get("chroma_file_count", 0)
         })
-        
-        response.set_cookie('session_id', session_id, max_age=7200)
-        return response
     
     except Exception as e:
         logger.exception("Error initializing showcase paper")
@@ -881,6 +890,71 @@ def init_showcase_paper():
             "success": False,
             "error": "Server error",
             "message": str(e)
+        }), 500
+
+
+@app.post("/api/transcribe-audio")
+def transcribe_audio():
+    """
+    Transcribe audio file to text using Gemini multimodal API
+
+    Request: multipart/form-data with audio file
+    Response: { "success": bool, "transcription": str }
+    """
+    try:
+        # Check if audio file is present
+        if 'audio' not in request.files:
+            return jsonify({
+                "success": False,
+                "message": "No audio file provided"
+            }), 400
+
+        audio_file = request.files['audio']
+
+        if audio_file.filename == '':
+            return jsonify({
+                "success": False,
+                "message": "Empty audio file"
+            }), 400
+
+        # Save audio temporarily
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as tmp_file:
+            audio_path = tmp_file.name
+            audio_file.save(audio_path)
+
+        try:
+            logger.info(f"Transcribing audio file: {audio_path}")
+
+            # Use Gemini to transcribe
+            synthesizer = GeminiSynthesizer(api_key=Config.GEMINI_API_KEY)
+            transcription = synthesizer.transcribe_audio(audio_path)
+
+            logger.info(f"Transcription successful: {len(transcription)} characters")
+
+            # Clean up temp file
+            os.remove(audio_path)
+
+            return jsonify({
+                "success": True,
+                "transcription": transcription
+            })
+
+        except Exception as e:
+            logger.exception(f"Error during transcription: {str(e)}")
+            # Clean up temp file on error
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            raise e
+
+    except Exception as e:
+        logger.exception("Error transcribing audio")
+        import traceback
+        error_details = traceback.format_exc()
+        logger.error(f"Full error details: {error_details}")
+        return jsonify({
+            "success": False,
+            "message": f"Transcription failed: {str(e)}"
         }), 500
 
 
