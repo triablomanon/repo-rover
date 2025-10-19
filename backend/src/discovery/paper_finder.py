@@ -133,12 +133,19 @@ Example output:
 """
 
         try:
+            # 1. Define the Google Search tool instance
+            search_tool = types.Tool(google_search=types.GoogleSearch())
+            
+            # 2. Add the search tool to the GenerateContentConfig
             config = types.GenerateContentConfig(
                 temperature=0.1,
                 max_output_tokens=4096,
                 response_mime_type="application/json",
+                # FIX: Add the tools array to enable Grounding
+                tools=[search_tool],
             )
 
+            # 3. The API call now uses the config with the search tool enabled
             response = self.genai_client.models.generate_content(
                 model=self.gemini_model_name,
                 contents=prompt,
