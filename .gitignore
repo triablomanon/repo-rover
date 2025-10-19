@@ -36,9 +36,10 @@ ENV/
 *.swo
 *~
 
-# Cloned Repositories
+# Cloned Repositories & papers
 cloned_repos/
 repos/
+papers
 
 # Jupyter Notebooks
 .ipynb_checkpoints/

@@ -16,13 +16,12 @@ class Config:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     VECTARA_CUSTOMER_ID: str = os.getenv("VECTARA_CUSTOMER_ID", "")
     VECTARA_API_KEY: str = os.getenv("VECTARA_API_KEY", "")
-    VECTARA_CORPUS_ID: str = os.getenv("VECTARA_CORPUS_ID", "")
     FETCHAI_AGENT_SEED: str = os.getenv("FETCHAI_AGENT_SEED", "")
     FETCHAI_AGENT_MAILBOX_KEY: str = os.getenv("FETCHAI_AGENT_MAILBOX_KEY", "")
     OPENALEX_EMAIL: Optional[str] = os.getenv("OPENALEX_EMAIL")
 
     # Model Settings
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
     # Paths
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
@@ -43,8 +42,6 @@ class Config:
             errors.append("VECTARA_CUSTOMER_ID is required")
         if not cls.VECTARA_API_KEY:
             errors.append("VECTARA_API_KEY is required")
-        if not cls.VECTARA_CORPUS_ID:
-            errors.append("VECTARA_CORPUS_ID is required")
 
         return errors
 

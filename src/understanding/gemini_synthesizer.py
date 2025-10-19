@@ -1,10 +1,12 @@
 """
 Google Gemini integration for paper-to-code synthesis
 """
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from typing import Dict, List, Optional
 from rich.console import Console
 import json
+from pathlib import Path
 
 console = Console()
 
@@ -13,9 +15,9 @@ class GeminiSynthesizer:
     """Synthesize paper concepts to code using Gemini"""
 
     def __init__(self, api_key: str, model_name: str = "gemini-2.0-flash-exp"):
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model_name)
+        self.api_key = api_key
         self.model_name = model_name
+        self.client = genai.Client(api_key=api_key)
 
         # Generation config for structured outputs
         self.generation_config = {
@@ -81,9 +83,9 @@ Focus on the 3-5 most important concepts from the paper.
 Return ONLY valid JSON, no additional text.
 """
 
-            response = self.model.generate_content(
-                prompt,
-                generation_config=self.generation_config
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
             )
 
             # Parse JSON response
@@ -143,9 +145,9 @@ Provide a clear, concise explanation (2-3 paragraphs) that:
 Be specific about code details (function names, variable names, logic flow).
 """
 
-            response = self.model.generate_content(
-                prompt,
-                generation_config=self.generation_config
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
             )
 
             explanation = response.text.strip()
@@ -158,23 +160,63 @@ Be specific about code details (function names, variable names, logic flow).
 
     def answer_question(self, question: str, code_context: str, paper_info: Dict) -> str:
         """
-        Answer a question about the paper and code
+        Answer a question about the paper and code using PDF context
 
         Args:
             question: User question
             code_context: Relevant code snippets from search
-            paper_info: Paper metadata
+            paper_info: Paper metadata (must include pdf_path)
 
         Returns:
             Answer text
         """
         try:
-            console.print(f"[blue]Answering question with Gemini...[/blue]")
+            console.print(f"[blue]Answering question with Gemini (using PDF + code)...[/blue]")
 
-            prompt = f"""You are an expert at explaining research paper implementations.
+            # Check if we have a PDF path
+            pdf_path = paper_info.get('pdf_path')
+
+            if pdf_path and Path(pdf_path).exists():
+                # Load PDF
+                pdf_bytes = Path(pdf_path).read_bytes()
+
+                prompt = f"""You are an expert at explaining research paper implementations.
+
+RELEVANT CODE FROM REPOSITORY:
+{code_context[:4000]}
+
+USER QUESTION: {question}
+
+TASK:
+Answer the user's question by:
+1. Using the paper (PDF above) to understand the theory
+2. Using the code snippets to see the implementation
+3. Connecting theory to practice
+
+Be specific and cite both the paper and code.
+"""
+
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=[
+                        types.Part.from_bytes(
+                            data=pdf_bytes,
+                            mime_type='application/pdf'
+                        ),
+                        prompt
+                    ]
+                )
+
+                answer = response.text.strip()
+                console.print(f"[green]✓ Generated answer using PDF + code context[/green]")
+                return answer
+
+            else:
+                # Fallback: use only abstract if no PDF
+                prompt = f"""You are an expert at explaining research paper implementations.
 
 PAPER: {paper_info['title']}
-ABSTRACT: {paper_info['summary'][:800]}
+ABSTRACT: {paper_info.get('summary', '')[:800]}
 
 RELEVANT CODE:
 {code_context[:4000]}
@@ -191,17 +233,19 @@ Include:
 Be concise but thorough. Use code examples where helpful.
 """
 
-            response = self.model.generate_content(
-                prompt,
-                generation_config=self.generation_config
-            )
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
 
-            answer = response.text.strip()
-            console.print(f"[green]✓ Generated answer[/green]")
-            return answer
+                answer = response.text.strip()
+                console.print(f"[green]✓ Generated answer (without PDF)[/green]")
+                return answer
 
         except Exception as e:
             console.print(f"[red]Error answering question: {e}[/red]")
+            import traceback
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
             return f"I encountered an error while answering: {str(e)}"
 
     def generate_minimal_example(self, function_name: str, code_snippet: str, paper_context: str) -> str:
@@ -242,9 +286,9 @@ Requirements:
 Return ONLY the Python code, properly formatted.
 """
 
-            response = self.model.generate_content(
-                prompt,
-                generation_config=self.generation_config
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
             )
 
             mwe = response.text.strip()

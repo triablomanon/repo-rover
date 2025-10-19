@@ -1,245 +1,282 @@
 # Repo Rover
 
-**Tagline:** From paper title to running code in 60 seconds
+**From paper title to running code in 60 seconds**
 
-An autonomous AI agent that finds research papers, discovers their code implementations, and provides interactive step-by-step explanations connecting theory to code.
+AI agent that finds research papers, discovers code implementations, and explains how theory maps to code.
 
-## Quick Start
+---
 
-### 1. Prerequisites
-
-- Python 3.9 or higher
-- Git installed
-- API keys (see setup below)
-
-### 2. Required API Keys Setup
-
-Before you begin, obtain these API keys:
-
-#### A. Google Gemini API Key (REQUIRED)
-1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the key (starts with `AIza...`)
-
-#### B. Vectara Credentials (REQUIRED)
-1. Visit [Vectara Console](https://console.vectara.com/)
-2. Create a free account
-3. Create a new corpus:
-   - Go to "Data" > "Create Corpus"
-   - Name: "RepoRover-CodeSearch"
-   - Description: "Semantic search for code repositories"
-4. Get your credentials:
-   - **Customer ID**: Found in Account settings
-   - **API Key**: Create under "API Access" > "Create API Key" (select "Personal API Key")
-   - **Corpus ID**: The ID of your created corpus (visible in corpus list)
-
-#### C. Fetch.ai Agentverse (OPTIONAL - For deployment)
-1. Visit [Agentverse](https://agentverse.ai/)
-2. Create a free account
-3. Create a new agent to get:
-   - Agent seed phrase
-   - Mailbox key (for remote communication)
-
-### 3. Installation
+## Quick Setup
 
 ```bash
-# Clone the repository
-cd repo-rover
+# 1. Create conda environment
+conda env create -f environment.yml
 
-# Create virtual environment
-python -m venv venv
+# 2. Activate
+conda activate repo-rover
 
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy environment template
+# 3. Configure API keys
 cp .env.example .env
+# Edit .env with your Vectara and Gemini API keys
 
-# Edit .env and add your API keys
-# Windows: notepad .env
-# Linux/Mac: nano .env
+# 4. Test
+python test.py
 ```
 
-### 4. Configuration
+### Get API Keys (FREE)
 
-Edit [.env](.env) file with your actual API keys:
+1. **Vectara**: https://console.vectara.com/ → Get Customer ID + API Key
+2. **Gemini**: https://aistudio.google.com/app/apikey → Get API Key
 
-```env
-GEMINI_API_KEY=AIza...your_actual_key
-VECTARA_CUSTOMER_ID=1234567890
-VECTARA_API_KEY=zwt_...your_actual_key
-VECTARA_CORPUS_ID=1
+Add to `.env`:
+```
+VECTARA_CUSTOMER_ID=your_id
+VECTARA_API_KEY=your_key
+GEMINI_API_KEY=your_key
 ```
 
-### 5. Run
+---
 
+## How It Works
+
+### `corpus_manager.py` - START HERE
+Manages Vectara corpora. One corpus per paper.
+
+```python
+from src.corpus_manager import find_or_create_corpus
+
+# Check if corpus exists for this paper, create if not
+corpus_id = find_or_create_corpus("2310.02170")
+# Returns: corpus_id (int) to use for indexing
+```
+
+**What it does:**
+1. Lists your existing Vectara corpora
+2. If corpus with paper name exists → returns its ID
+3. If not → creates new corpus → returns new ID
+
+**File interactions:**
+- Reads: `.env` (for VECTARA_CUSTOMER_ID, VECTARA_API_KEY)
+- Uses: Vectara API
+- Returns: corpus_id for use in `code_indexer.py`
+
+---
+
+### Complete Workflow
+
+```python
+# 1. Get/create corpus
+from src.corpus_manager import find_or_create_corpus
+corpus_id = find_or_create_corpus("2310.02170")
+
+# 2. Find paper on ArXiv
+from src.discovery.paper_finder import PaperFinder
+finder = PaperFinder()
+paper = finder.analyze_paper("2310.02170")
+
+# 3. Find GitHub repo
+from src.discovery.repo_finder import RepoFinder
+repo_finder = RepoFinder()
+repo_url = repo_finder.find_with_fallback(paper)
+
+# 4. Clone repo
+from src.utils.repo_utils import RepoAnalyzer
+from src.utils.config import Config
+analyzer = RepoAnalyzer(Config.REPO_CLONE_DIR)
+repo_path = analyzer.clone_repository(repo_url)
+
+# 5. Index code into corpus
+from src.understanding.code_indexer import VectaraIndexer
+from src.utils.config import Config
+indexer = VectaraIndexer(
+    Config.VECTARA_CUSTOMER_ID,
+    Config.VECTARA_API_KEY,
+    corpus_id  # From step 1!
+)
+count = indexer.index_repository(repo_path, "transformer")
+
+# 6. Query the code
+results = indexer.search("multi-head attention")
+```
+
+---
+
+## File Reference
+
+### `src/corpus_manager.py` ⭐ NEW
+**Purpose:** Manages Vectara corpora per paper
+
+**Functions:**
+- `find_or_create_corpus(name)` → corpus_id
+- `delete_corpus(corpus_id)` → bool
+
+**Depends on:** `.env` (VECTARA_CUSTOMER_ID, VECTARA_API_KEY)
+
+**Test it:**
 ```bash
-# Test the setup
-python src/main.py --test
-
-# Analyze a paper
-python src/main.py --paper "Attention Is All You Need"
-
-# Start the agent
-python src/agent.py
+python src/corpus_manager.py
 ```
 
-## Architecture
+---
 
+### `src/discovery/paper_finder.py`
+**Purpose:** Finds papers on ArXiv
+
+**Key function:** `analyze_paper(query)` → paper_info dict
+
+**Returns:**
+```python
+{
+    "title": "2310.02170",
+    "arxiv_id": "1706.03762",
+    "authors": ["Ashish Vaswani", ...],
+    "summary": "...",
+    "pdf_url": "...",
+    "pdf_path": "/path/to/downloaded.pdf"
+}
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    User Input                           │
-│            "Analyze: Attention Is All You Need"         │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│              Paper Discovery Module                      │
-│  ┌─────────────┐         ┌──────────────┐              │
-│  │ ArXiv API   │────────▶│ PDF Download │              │
-│  └─────────────┘         └──────────────┘              │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│            Repository Discovery Module                   │
-│  ┌──────────────────┐       ┌──────────────┐           │
-│  │ Papers w/ Code   │──────▶│ Git Clone    │           │
-│  │ API              │       │ Repository   │           │
-│  └──────────────────┘       └──────────────┘           │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│              Code Understanding Engine                   │
-│  ┌──────────────┐         ┌──────────────┐             │
-│  │   Vectara    │────────▶│   Gemini     │             │
-│  │  RAG Search  │         │  Synthesis   │             │
-│  └──────────────┘         └──────────────┘             │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│              Fetch.ai uAgent Layer                       │
-│  ┌────────────────────────────────────────┐             │
-│  │  Deployed on Agentverse                │             │
-│  │  - Natural Language Q&A                │             │
-│  │  - MWE Generation                      │             │
-│  │  - Interactive Explanations            │             │
-│  └────────────────────────────────────────┘             │
-└─────────────────────────────────────────────────────────┘
+
+**Depends on:** ArXiv API (no key needed)
+
+---
+
+### `src/discovery/repo_finder.py`
+**Purpose:** Finds GitHub repos for papers
+
+**Key function:** `find_with_fallback(paper_info)` → repo_url
+
+**Depends on:** Papers with Code API (no key needed)
+
+---
+
+### `src/understanding/code_indexer.py`
+**Purpose:** Indexes code files into Vectara
+
+**Key functions:**
+- `index_repository(repo_path, name)` → count
+- `search(query)` → list of results
+
+**Depends on:**
+- `.env` (VECTARA_CUSTOMER_ID, VECTARA_API_KEY)
+- **corpus_id** from `corpus_manager.py`
+
+---
+
+### `src/understanding/gemini_synthesizer.py`
+**Purpose:** Uses Gemini to explain code
+
+**Key functions:**
+- `create_concept_map(paper, readme, structure)` → dict
+- `answer_question(question, code, paper)` → string
+- `generate_minimal_example(function, code)` → python code
+
+**Depends on:** `.env` (GEMINI_API_KEY)
+
+---
+
+### `src/understanding/query_pipeline.py`
+**Purpose:** Combines Vectara search + Gemini synthesis
+
+**Key function:** `query(question)` → answer + code snippets
+
+**Depends on:** `code_indexer.py` + `gemini_synthesizer.py`
+
+---
+
+### `src/utils/config.py`
+**Purpose:** Loads `.env` file
+
+**Usage:**
+```python
+from src.utils.config import Config
+print(Config.VECTARA_API_KEY)
 ```
+
+---
+
+### `src/utils/repo_utils.py`
+**Purpose:** Git operations
+
+**Key functions:**
+- `clone_repository(url)` → repo_path
+- `get_repo_structure(path)` → dict
+- `get_python_files(path)` → list
+
+---
 
 ## Project Structure
 
 ```
 repo-rover/
 ├── src/
-│   ├── __init__.py
-│   ├── main.py                    # Main entry point
-│   ├── agent.py                   # Fetch.ai agent wrapper
+│   ├── corpus_manager.py      ⭐ Start here - manages Vectara corpora
 │   ├── discovery/
-│   │   ├── __init__.py
-│   │   ├── paper_finder.py        # ArXiv integration
-│   │   └── repo_finder.py         # Papers with Code API
+│   │   ├── paper_finder.py    → Finds papers
+│   │   └── repo_finder.py     → Finds repos
 │   ├── understanding/
-│   │   ├── __init__.py
-│   │   ├── code_indexer.py        # Vectara RAG integration
-│   │   ├── gemini_synthesizer.py  # Gemini integration
-│   │   └── query_pipeline.py      # Combined query handler
-│   ├── generation/
-│   │   ├── __init__.py
-│   │   └── mwe_generator.py       # Minimal working example
+│   │   ├── code_indexer.py    → Indexes code (needs corpus_id)
+│   │   ├── gemini_synthesizer.py  → Explains code
+│   │   └── query_pipeline.py  → Combines everything
 │   └── utils/
-│       ├── __init__.py
-│       ├── config.py              # Configuration management
-│       └── repo_utils.py          # Git utilities
-├── tests/
-│   └── test_pipeline.py
-├── notebooks/
-│   └── demo.ipynb                 # Colab demo
-├── cloned_repos/                  # Git clones (gitignored)
-├── .env.example
-├── .gitignore
-├── requirements.txt
-├── environment.yml                # Conda environment
-└── README.md
+│       ├── config.py          → Loads .env
+│       └── repo_utils.py      → Git helpers
+├── .env                       → Your API keys
+└── requirements.txt
 ```
-
-## API Key Costs (All Free Tier Available)
-
-| Service | Free Tier | Cost After | What We Use It For |
-|---------|-----------|------------|-------------------|
-| **Gemini 2.0 Flash** | 1500 requests/day, 2M tokens | $0 (currently free) | Code synthesis, concept mapping |
-| **Vectara** | 50K queries/month | Free for developers | Semantic code search |
-| **Fetch.ai** | Unlimited testnet | Free | Agent deployment |
-| **ArXiv API** | Unlimited | Free | Paper downloads |
-| **Papers with Code** | Unlimited | Free | Repo discovery |
-
-**Total Setup Cost: $0**
-
-## Development Timeline (12 Hours)
-
-- **Hours 0-3:** Foundation (Paper + Repo Discovery) ✓
-- **Hours 3-8:** Code Understanding (Vectara + Gemini)
-- **Hours 8-10:** Agent Deployment (Fetch.ai)
-- **Hours 10-12:** Demo Polish (Colab + Presentation)
-
-## Demo Flow (3 Minutes)
-
-1. **Input:** "Analyze: Attention Is All You Need"
-2. **Agent finds:** ArXiv paper + tensor2tensor repo
-3. **User asks:** "Show me multi-head attention implementation"
-4. **Agent returns:** Explanation + code snippet from `transformer.py`
-5. **User requests:** "Generate MWE for MultiHeadAttention"
-6. **Agent creates:** Runnable Python script with dummy data
-
-## Troubleshooting
-
-### Common Issues
-
-**"ModuleNotFoundError: No module named 'uagents'"**
-- Make sure virtual environment is activated
-- Run `pip install -r requirements.txt`
-
-**"Vectara authentication failed"**
-- Double-check Customer ID, API Key, and Corpus ID in [.env](.env)
-- Ensure API key has read/write permissions
-
-**"Gemini API quota exceeded"**
-- Wait for quota reset (1500 requests/day)
-- Consider using smaller code chunks
-
-**"Papers with Code API not finding repository"**
-- Some papers don't have official implementations
-- Try fallback search or hardcode known paper-repo pairs
-
-## Contributing
-
-This is a hackathon project! Feel free to:
-- Add support for more paper sources
-- Improve code understanding algorithms
-- Add multi-language support
-- Enhance MWE generation
-
-## License
-
-MIT License - Built for [Hackathon Name]
-
-## Powered By
-
-- [Google Gemini](https://ai.google.dev/) - Long-context code understanding
-- [Vectara](https://vectara.com/) - Semantic code search
-- [Fetch.ai](https://fetch.ai/) - Agent deployment & discovery
-- [Papers with Code](https://paperswithcode.com/) - Repository discovery
 
 ---
 
-**Built in 12 hours | From paper title to running code in 60 seconds**
+## Data Flow
+
+```
+1. corpus_manager.py
+   ↓ (returns corpus_id)
+
+2. paper_finder.py
+   ↓ (returns paper_info)
+
+3. repo_finder.py
+   ↓ (returns repo_url)
+
+4. repo_utils.py (clone)
+   ↓ (returns repo_path)
+
+5. code_indexer.py (needs corpus_id from step 1!)
+   ↓ (indexes files)
+
+6. query_pipeline.py
+   ↓ (searches + synthesizes)
+
+7. Answer!
+```
+
+---
+
+## Test Each Part
+
+```bash
+# 1. Test corpus manager
+python src/corpus_manager.py
+
+# 2. Test paper finding
+python -c "from src.discovery.paper_finder import PaperFinder; p = PaperFinder(); print(p.search_paper('2310.02170'))"
+
+# 3. Test repo finding
+python -c "from src.discovery.repo_finder import RepoFinder; r = RepoFinder(); print(r.find_by_arxiv_id('1706.03762'))"
+```
+
+---
+
+## Cost
+
+All FREE:
+- Vectara: 50K queries/month
+- Gemini: 1500 requests/day
+- ArXiv: Unlimited
+- Papers with Code: Unlimited
+
+---
+
+## License
+
+MIT

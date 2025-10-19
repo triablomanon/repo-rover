@@ -1,21 +1,35 @@
-# environment.yml
+# Conda environment for Repo Rover
+# Create: conda env create -f environment.yml
+# Activate: conda activate repo-rover
+
 name: repo-rover
 channels:
   - conda-forge
   - defaults
+
 dependencies:
-  - python=3.11          # consistent interpreter version for everyone
-  - pip                  # pip inside conda for packages not available on conda
-  - git                  # we need git to clone repos programmatically
-  - nodejs               # optional but handy for the React frontend build
-  - jupyterlab           # optional, for demos / notebooks
-  - ipykernel            # to create a jupyter kernel for this env
+  - python=3.11
+  - pip
+  - git
+
+  # Install Python packages via pip (inside conda)
   - pip:
-      - gitpython
-      - requests
-      - arxiv
+      # Core dependencies
       - python-dotenv
-      - aiohttp
-      - vectara-client    # if distributed via pip; otherwise use REST calls
-      - anthropic         # Claude Code client (name may differ per SDK)
-      - openai            # if you still use Gemini / other APIs
+      - requests
+
+      # Google Gemini AI
+      - google-genai>=0.2.0
+
+      # ArXiv Paper Access
+      - arxiv
+
+      # GitHub Repository Handling
+      - GitPython
+
+      # Utility Libraries
+      - rich
+
+      # Fetch.ai Agent Framework (optional - for deployment)
+      - uagents
+      
