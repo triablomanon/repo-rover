@@ -370,9 +370,10 @@ def init_paper():
             cloud_host=Config.CHROMA_CLOUD_HOST
         )
 
+        # Use Pro model specifically for synthesis/code analysis
         gemini = GeminiSynthesizer(
             Config.GEMINI_API_KEY,
-            Config.GEMINI_MODEL
+            "gemini-2.5-pro"
         )
 
         # Check cache first
@@ -689,6 +690,193 @@ def clear_all_cache():
 
     except Exception as e:
         logger.exception("Error clearing all cache")
+        return jsonify({
+            "success": False,
+            "error": "Server error",
+            "message": str(e)
+        }), 500
+
+
+@app.get("/api/showcase-papers")
+def get_showcase_papers():
+    """Get the list of featured showcase papers"""
+    try:
+        import json
+        showcase_metadata_path = Path(__file__).parent / "showcase_papers" / "metadata.json"
+        
+        if not showcase_metadata_path.exists():
+            return jsonify({
+                "success": False,
+                "error": "Showcase not configured",
+                "papers": []
+            })
+        
+        with open(showcase_metadata_path, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
+        
+        return jsonify({
+            "success": True,
+            "papers": metadata.get("papers", [])
+        })
+    
+    except Exception as e:
+        logger.exception("Error loading showcase papers")
+        return jsonify({
+            "success": False,
+            "error": "Server error",
+            "message": str(e),
+            "papers": []
+        }), 500
+
+
+@app.post("/api/init-showcase-paper")
+def init_showcase_paper():
+    """Initialize a session with a pre-indexed showcase paper"""
+    try:
+        data = request.get_json()
+        arxiv_id = data.get("arxiv_id")
+        
+        if not arxiv_id:
+            return jsonify({
+                "success": False,
+                "error": "Missing arxiv_id"
+            }), 400
+        
+        # Load showcase metadata
+        import json
+        showcase_metadata_path = Path(__file__).parent / "showcase_papers" / "metadata.json"
+        
+        if not showcase_metadata_path.exists():
+            return jsonify({
+                "success": False,
+                "error": "Showcase not configured"
+            }), 500
+        
+        with open(showcase_metadata_path, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
+        
+        # Find the requested paper
+        showcase_paper_info = None
+        for paper in metadata.get("papers", []):
+            if paper["id"] == arxiv_id or paper["arxiv_id"] == arxiv_id:
+                showcase_paper_info = paper
+                break
+        
+        if not showcase_paper_info:
+            return jsonify({
+                "success": False,
+                "error": "Paper not found in showcase"
+            }), 404
+        
+        # Get or create session
+        session_id = request.cookies.get('session_id')
+        session = session_manager.get_session(session_id)
+        
+        if not session:
+            session_id = session_manager.create_session()
+            session = session_manager.get_session(session_id)
+        
+        # Check if paper is already in cache
+        cache = get_cache()
+        cached_paper = cache.get(arxiv_id)
+        
+        if not cached_paper:
+            return jsonify({
+                "success": False,
+                "error": "Paper not indexed",
+                "message": f"Showcase paper {arxiv_id} needs to be indexed first. Please run the paper through normal flow once."
+            }), 404
+        
+        # Get cached data
+        repo_path = Path(cached_paper.get("repo_path", ""))
+        if not repo_path.exists():
+            return jsonify({
+                "success": False,
+                "error": "Repository not found",
+                "message": f"Cached repository path doesn't exist: {repo_path}"
+            }), 404
+        
+        # Initialize the query pipeline with cached data
+        logger.info(f"Initializing showcase paper {arxiv_id} for session {session_id}")
+        
+        # Get the ChromaDB collection
+        collection_name = cached_paper.get("chroma_collection", arxiv_id)
+        
+        # Initialize ChromaDB indexer and Gemini synthesizer (same as regular flow)
+        chroma = ChromaIndexer()
+        gemini = GeminiSynthesizer(Config.GEMINI_API_KEY, "gemini-2.5-pro")
+        
+        # Set the collection
+        chroma.set_collection(collection_name)
+        
+        # Build paper_info from cached data
+        paper_info = {
+            "title": cached_paper.get("title"),
+            "arxiv_id": arxiv_id,
+            "authors": cached_paper.get("authors", []),
+            "summary": cached_paper.get("summary", ""),
+            "pdf_url": cached_paper.get("pdf_url", ""),
+            "repo_url": cached_paper.get("repo_url", ""),
+            "published": showcase_paper_info.get("published", "")
+        }
+        
+        # Create query pipeline (same pattern as regular init)
+        pipeline = QueryPipeline(chroma, gemini, paper_info, repo_path)
+        
+        # Load concept map if exists
+        concept_map = cache.load_concept_map(arxiv_id)
+        
+        # Get repo structure
+        repo_analyzer = RepoAnalyzer(Config.REPO_CLONE_DIR)
+        repo_structure = repo_analyzer.get_repo_structure(repo_path)
+        readme = repo_analyzer.get_readme_content(repo_path)
+        
+        # Initialize pipeline
+        pipeline.initialize(readme or "", repo_structure, concept_map=concept_map)
+        
+        # Create RoverInstance (same as regular flow)
+        class RoverInstance:
+            def __init__(self, pipeline, paper_info, repo_path):
+                self.pipeline = pipeline
+                self.paper_info = paper_info
+                self.repo_path = repo_path
+
+            def query(self, question):
+                response = self.pipeline.query(question)
+                return {
+                    "success": True,
+                    "answer": response.get("answer", ""),
+                    "code_snippets": response.get("code_snippets", []),
+                    "confidence": response.get("confidence", "medium"),
+                    "num_sources": response.get("num_sources", 0)
+                }
+        
+        rover = RoverInstance(pipeline, paper_info, repo_path)
+        
+        # Store in session using update_session
+        session_manager.update_session(
+            session_id,
+            rover_instance=rover,
+            paper_info=paper_info,
+            repo_path=repo_path,
+            is_initialized=True,
+            initialization_error=None
+        )
+        
+        logger.info(f"Showcase paper {arxiv_id} initialization complete!")
+        
+        response = jsonify({
+            "success": True,
+            "message": f"Successfully loaded '{paper_info['title']}'",
+            "paper_info": paper_info,
+            "indexed_files": cached_paper.get("chroma_file_count", 0)
+        })
+        
+        response.set_cookie('session_id', session_id, max_age=7200)
+        return response
+    
+    except Exception as e:
+        logger.exception("Error initializing showcase paper")
         return jsonify({
             "success": False,
             "error": "Server error",

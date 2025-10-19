@@ -73,6 +73,7 @@ export interface SelectPaperResponse {
   selected?: boolean;
   arxiv_id?: string;
   title?: string;
+  pdf_url?: string;
   cancelled?: boolean;
   needs_selection?: boolean;
   options?: PaperOption[];
@@ -102,4 +103,30 @@ export interface AppState {
   paperInfo: PaperInfo | null;
   isInitialized: boolean;
   isPaperVisible: boolean;
+}
+
+export interface ShowcasePaper {
+  id: string;
+  title: string;
+  authors: string[];
+  arxiv_id: string;
+  summary: string;
+  pdf_url: string;
+  repo_url: string;
+  published: string;
+}
+
+export interface ShowcasePapersResponse {
+  success: boolean;
+  papers: ShowcasePaper[];
+  error?: string;
+  message?: string;
+}
+
+export interface InitShowcasePaperResponse {
+  success: boolean;
+  message: string;
+  paper_info?: PaperInfo;
+  indexed_files?: number;
+  error?: string;
 }

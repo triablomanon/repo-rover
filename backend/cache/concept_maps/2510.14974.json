@@ -1,0 +1,74 @@
+{
+  "main_concepts": [
+    {
+      "concept": "pi-Flow (Policy-Based Flow Models)",
+      "description": "The core concept where the student model predicts parameters for a network-free policy instead of a denoised state. This policy is then used to integrate an ODE over several substeps to generate the final output.",
+      "likely_files": [
+        "train.py",
+        "configs/piflow_imagenet/gmdit_k32_imagenet_piid_1step_8gpus.py",
+        "lakonlab/models/piflow.py"
+      ],
+      "search_keywords": [
+        "PiFlow",
+        "Policy",
+        "substeps",
+        "ODE",
+        "integrator"
+      ]
+    },
+    {
+      "concept": "Imitation Distillation (pi-ID)",
+      "description": "The novel training method where the student policy's velocity is matched to the teacher's velocity along the student's own generated trajectory. This is achieved using a simple L2 flow matching loss.",
+      "likely_files": [
+        "train.py",
+        "configs/piflow_imagenet/gmdit_k32_imagenet_piid_1step_8gpus.py"
+      ],
+      "search_keywords": [
+        "piid",
+        "imitation_distillation",
+        "l2_loss",
+        "flow_matching",
+        "teacher_velocity"
+      ]
+    },
+    {
+      "concept": "Network-Free Policy & ODE Rollout",
+      "description": "The mechanism by which the policy, parameterized by the student network's single output, produces dynamic velocities at future substeps without extra network evaluations. This enables fast and efficient ODE integration.",
+      "likely_files": [
+        "lakonlab/solvers/ode.py",
+        "lakonlab/models/policy.py",
+        "train.py"
+      ],
+      "search_keywords": [
+        "rollout",
+        "policy",
+        "solver",
+        "odeint",
+        "substep"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "main() in train.py",
+      "purpose": "The main entry point for training. It parses a configuration file, initializes the student and teacher models, the dataset, and the training loop which calculates the imitation distillation loss.",
+      "file_hint": "train.py"
+    },
+    {
+      "function_name": "PiIDLoss or similar loss function",
+      "purpose": "Calculates the L2 loss between the student policy's velocity and the teacher model's velocity at points along the policy's integrated trajectory. This function is the core of imitation distillation.",
+      "file_hint": "train.py or a file inside lakonlab/losses/"
+    },
+    {
+      "function_name": "PolicyODESolver or similar class/function",
+      "purpose": "Implements the ODE integration using the network-free policy. It takes the policy parameters from the student model and performs a multi-step rollout to generate a sample.",
+      "file_hint": "A file inside lakonlab/solvers/ or lakonlab/ops/"
+    },
+    {
+      "function_name": "PiFlowModel or similar model class",
+      "purpose": "The student network class. Its forward pass takes a noisy input and time, and outputs the parameters for the network-free policy.",
+      "file_hint": "A file inside lakonlab/models/"
+    }
+  ],
+  "architecture_overview": "The codebase is structured around a main training script (`train.py`) and a testing script (`test.py`) that are driven by configuration files located in the `configs/` directory. The pi-Flow specific configurations, like `gmdit_k32_imagenet_piid_1step_8gpus.py`, define the model architecture, training parameters, and crucially, specify the use of the imitation distillation (`piid`) strategy. The core implementation of the pi-Flow model, the network-free policy, the ODE solver, and the loss function are encapsulated within the `lakonlab` Python package, which is installed via `setup.py`. This modular design separates the high-level experiment configuration from the low-level implementation details."
+}

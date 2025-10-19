@@ -1,0 +1,115 @@
+{
+  "2310.02170": {
+    "arxiv_id": "2310.02170",
+    "title": "A Dynamic LLM-Powered Agent Network for Task-Oriented Agent Collaboration",
+    "authors": [
+      "Zijun Liu",
+      "Yanzhe Zhang",
+      "Peng Li",
+      "Yang Liu",
+      "Diyi Yang"
+    ],
+    "summary": "Recent studies show that collaborating multiple large language model (LLM)\npowered agents is a promising way for task solving. However, current approaches\nare constrained by using a fixed number of agents and static communication\nstructures. In this work, we propose automatically selecting a team of agents\nfrom candidates to collaborate in a dynamic communication structure toward\ndifferent tasks and domains. Specifically, we build a framework named Dynamic\nLLM-Powered Agent Network ($\\textbf{DyLAN}$) for LLM-powered agent\ncollaboration, operating a two-stage paradigm: (1) Team Optimization and (2)\nTask Solving. During the first stage, we utilize an $\\textit{agent selection}$\nalgorithm, based on an unsupervised metric called $\\textit{Agent Importance\nScore}$, enabling the selection of best agents according to their contributions\nin a preliminary trial, oriented to the given task. Then, in the second stage,\nthe selected agents collaborate dynamically according to the query.\nEmpirically, we demonstrate that DyLAN outperforms strong baselines in code\ngeneration, decision-making, general reasoning, and arithmetic reasoning tasks\nwith moderate computational cost. On specific subjects in MMLU, selecting a\nteam of agents in the team optimization stage improves accuracy by up to 25.0%\nin DyLAN.",
+    "pdf_url": "http://arxiv.org/pdf/2310.02170v2",
+    "pdf_path": "papers\\2310.02170.pdf",
+    "repo_url": "https://github.com/SALT-NLP/DYLAN",
+    "repo_path": "cloned_repos\\DYLAN",
+    "chroma_collection": "2310.02170",
+    "chroma_indexed_at": "2025-10-19T09:15:21.254201+00:00",
+    "chroma_file_count": 61,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2310.02170.json",
+    "last_accessed": "2025-10-19T11:13:16.338640+00:00",
+    "access_count": 5,
+    "created_at": "2025-10-19T09:15:21.256973+00:00"
+  },
+  "1609.02907": {
+    "arxiv_id": "1609.02907",
+    "title": "Semi-Supervised Classification with Graph Convolutional Networks",
+    "authors": [
+      "Thomas N. Kipf",
+      "Max Welling"
+    ],
+    "summary": "We present a scalable approach for semi-supervised learning on\ngraph-structured data that is based on an efficient variant of convolutional\nneural networks which operate directly on graphs. We motivate the choice of our\nconvolutional architecture via a localized first-order approximation of\nspectral graph convolutions. Our model scales linearly in the number of graph\nedges and learns hidden layer representations that encode both local graph\nstructure and features of nodes. In a number of experiments on citation\nnetworks and on a knowledge graph dataset we demonstrate that our approach\noutperforms related methods by a significant margin.",
+    "pdf_url": "http://arxiv.org/pdf/1609.02907v4",
+    "pdf_path": "papers\\1609.02907.pdf",
+    "repo_url": "https://github.com/tkipf/gcn",
+    "repo_path": "cloned_repos\\gcn",
+    "chroma_collection": "1609.02907",
+    "chroma_indexed_at": "2025-10-19T10:02:02.472251+00:00",
+    "chroma_file_count": null,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\1609.02907.json",
+    "last_accessed": "2025-10-19T11:10:49.348150+00:00",
+    "access_count": 2,
+    "created_at": "2025-10-19T10:02:02.472251+00:00"
+  },
+  "2510.07962": {
+    "arxiv_id": "2510.07962",
+    "title": "LightReasoner: Can Small Language Models Teach Large Language Models Reasoning?",
+    "authors": [
+      "Jingyuan Wang",
+      "Yankai Chen",
+      "Zhonghang Li",
+      "Chao Huang"
+    ],
+    "summary": "Large language models (LLMs) have demonstrated remarkable progress in\nreasoning, often through supervised fine-tuning (SFT). However, SFT is\nresource-intensive, relying on large curated datasets, rejection-sampled\ndemonstrations, and uniform optimization across all tokens, even though only a\nfraction carry meaningful learning value. In this work, we explore a\ncounterintuitive idea: can smaller language models (SLMs) teach larger language\nmodels (LLMs) by revealing high-value reasoning moments that reflect the\nlatter's unique strength? We propose LightReasoner, a novel framework that\nleverages the behavioral divergence between a stronger expert model (LLM) and a\nweaker amateur model (SLM). LightReasoner operates in two stages: (1) a\nsampling stage that pinpoints critical reasoning moments and constructs\nsupervision examples capturing the expert's advantage through expert-amateur\ncontrast, and (2) a fine-tuning stage that aligns the expert model with these\ndistilled examples, amplifying its reasoning strengths. Across seven\nmathematical benchmarks, LightReasoner improves accuracy by up to 28.1%, while\nreducing time consumption by 90%, sampled problems by 80%, and tuned token\nusage by 99%, all without relying on ground-truth labels. By turning weaker\nSLMs into effective teaching signals, LightReasoner offers a scalable and\nresource-efficient approach for advancing LLM reasoning. Code is available at:\nhttps://github.com/HKUDS/LightReasoner",
+    "pdf_url": "http://arxiv.org/pdf/2510.07962v1",
+    "pdf_path": "papers\\2510.07962.pdf",
+    "repo_url": "https://github.com/HKUDS/LightReasoner",
+    "repo_path": "cloned_repos\\LightReasoner",
+    "chroma_collection": "2510.07962",
+    "chroma_indexed_at": "2025-10-19T10:41:23.510466+00:00",
+    "chroma_file_count": 14,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2510.07962.json",
+    "last_accessed": "2025-10-19T11:11:45.855859+00:00",
+    "access_count": 2,
+    "created_at": "2025-10-19T10:41:23.510923+00:00"
+  },
+  "2405.16506": {
+    "arxiv_id": "2405.16506",
+    "title": "GRAG: Graph Retrieval-Augmented Generation",
+    "authors": [
+      "Yuntong Hu",
+      "Zhihan Lei",
+      "Zheng Zhang",
+      "Bo Pan",
+      "Chen Ling",
+      "Liang Zhao"
+    ],
+    "summary": "Naive Retrieval-Augmented Generation (RAG) focuses on individual documents\nduring retrieval and, as a result, falls short in handling networked documents\nwhich are very popular in many applications such as citation graphs, social\nmedia, and knowledge graphs. To overcome this limitation, we introduce Graph\nRetrieval-Augmented Generation (GRAG), which tackles the fundamental challenges\nin retrieving textual subgraphs and integrating the joint textual and\ntopological information into Large Language Models (LLMs) to enhance its\ngeneration. To enable efficient textual subgraph retrieval, we propose a novel\ndivide-and-conquer strategy that retrieves the optimal subgraph structure in\nlinear time. To achieve graph context-aware generation, incorporate textual\ngraphs into LLMs through two complementary views-the text view and the graph\nview-enabling LLMs to more effectively comprehend and utilize the graph\ncontext. Extensive experiments on graph reasoning benchmarks demonstrate that\nin scenarios requiring multi-hop reasoning on textual graphs, our GRAG approach\nsignificantly outperforms current state-of-the-art RAG methods. Our datasets as\nwell as codes of GRAG are available at https://github.com/HuieL/GRAG.",
+    "pdf_url": "http://arxiv.org/pdf/2405.16506v3",
+    "pdf_path": "papers\\2405.16506.pdf",
+    "repo_url": "https://github.com/HuieL/GRAG",
+    "repo_path": "cloned_repos\\GRAG",
+    "chroma_collection": "2405.16506",
+    "chroma_indexed_at": "2025-10-19T10:50:41.690404+00:00",
+    "chroma_file_count": 26,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2405.16506.json",
+    "last_accessed": "2025-10-19T11:13:29.961547+00:00",
+    "access_count": 2,
+    "created_at": "2025-10-19T10:50:41.690404+00:00"
+  },
+  "2510.14974": {
+    "arxiv_id": "2510.14974",
+    "title": "pi-Flow: Policy-Based Few-Step Generation via Imitation Distillation",
+    "authors": [
+      "Hansheng Chen",
+      "Kai Zhang",
+      "Hao Tan",
+      "Leonidas Guibas",
+      "Gordon Wetzstein",
+      "Sai Bi"
+    ],
+    "summary": "Few-step diffusion or flow-based generative models typically distill a\nvelocity-predicting teacher into a student that predicts a shortcut towards\ndenoised data. This format mismatch has led to complex distillation procedures\nthat often suffer from a quality-diversity trade-off. To address this, we\npropose policy-based flow models ($\\pi$-Flow). $\\pi$-Flow modifies the output\nlayer of a student flow model to predict a network-free policy at one timestep.\nThe policy then produces dynamic flow velocities at future substeps with\nnegligible overhead, enabling fast and accurate ODE integration on these\nsubsteps without extra network evaluations. To match the policy's ODE\ntrajectory to the teacher's, we introduce a novel imitation distillation\napproach, which matches the policy's velocity to the teacher's along the\npolicy's trajectory using a standard $\\ell_2$ flow matching loss. By simply\nmimicking the teacher's behavior, $\\pi$-Flow enables stable and scalable\ntraining and avoids the quality-diversity trade-off. On ImageNet 256$^2$, it\nattains a 1-NFE FID of 2.85, outperforming MeanFlow of the same DiT\narchitecture. On FLUX.1-12B and Qwen-Image-20B at 4 NFEs, $\\pi$-Flow achieves\nsubstantially better diversity than state-of-the-art few-step methods, while\nmaintaining teacher-level quality.",
+    "pdf_url": "http://arxiv.org/pdf/2510.14974v1",
+    "pdf_path": "papers\\2510.14974.pdf",
+    "repo_url": "https://github.com/Lakonik/piFlow",
+    "repo_path": "cloned_repos\\piFlow",
+    "chroma_collection": "2510.14974",
+    "chroma_indexed_at": "2025-10-19T11:17:35.056568+00:00",
+    "chroma_file_count": 139,
+    "concept_map_path": "C:\\Users\\User\\repo-rover\\backend\\cache\\concept_maps\\2510.14974.json",
+    "last_accessed": "2025-10-19T11:17:35.056568+00:00",
+    "access_count": 1,
+    "created_at": "2025-10-19T11:17:35.056568+00:00"
+  }
+}

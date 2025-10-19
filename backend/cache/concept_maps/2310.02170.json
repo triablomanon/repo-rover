@@ -1,0 +1,91 @@
+{
+  "main_concepts": [
+    {
+      "concept": "DyLAN Framework Orchestration",
+      "description": "The overarching control mechanism that coordinates the two stages of DyLAN: Agent Team Optimization and dynamic Task Solving, managing the lifecycle of agents and their interactions.",
+      "likely_files": [
+        "code/demo/run_DyLAN.py",
+        "code/demo/LLMLP.py",
+        "code/HumanEval/llmlp_listwise_human_eval.py"
+      ],
+      "search_keywords": [
+        "DyLAN",
+        "run_dylan",
+        "orchestration",
+        "framework",
+        "main_loop"
+      ]
+    },
+    {
+      "concept": "Agent Team Optimization & Selection",
+      "description": "The first stage of DyLAN, involving an algorithm to select an optimal team of agents from candidates based on an 'Agent Importance Score' derived from preliminary trials, to best suit a given task.",
+      "likely_files": [
+        "code/demo/LLMLP.py",
+        "code/MMLU/LLMLP.py",
+        "code/demo/utils.py"
+      ],
+      "search_keywords": [
+        "agent_selection",
+        "optimize_team",
+        "importance_score",
+        "select_agents",
+        "team_optimization"
+      ]
+    },
+    {
+      "concept": "Individual LLM Agent (LLM-as-a-Neuron)",
+      "description": "The core component representing a single LLM-powered agent, defining its capabilities for processing inputs, generating responses, and interacting within the network.",
+      "likely_files": [
+        "code/demo/LLM_Neuron.py",
+        "code/HumanEval/LLM_Neuron.py",
+        "code/demo/LLMLP.py"
+      ],
+      "search_keywords": [
+        "LLM_Neuron",
+        "agent_class",
+        "individual_agent",
+        "respond",
+        "llm_call"
+      ]
+    },
+    {
+      "concept": "Dynamic Agent Communication & Collaboration",
+      "description": "The second stage of DyLAN, where selected agents interact and exchange information in an adaptive and non-static manner. This includes the iterative dialogue and message passing mechanisms among agents.",
+      "likely_files": [
+        "code/demo/LLMLP.py",
+        "code/HumanEval/CoLLMLP.py",
+        "code/demo/run_DyLAN.py"
+      ],
+      "search_keywords": [
+        "collaborate",
+        "dynamic_interaction",
+        "message_passing",
+        "communication_loop",
+        "agent_dialogue"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "run_dylan_framework",
+      "purpose": "The main entry point or high-level function that orchestrates the entire DyLAN process, from agent selection to task solving.",
+      "file_hint": "code/demo/run_DyLAN.py"
+    },
+    {
+      "function_name": "select_optimal_team",
+      "purpose": "Implements the agent selection algorithm, potentially calculating and using the 'Agent Importance Score' to determine the best team for a task.",
+      "file_hint": "code/demo/LLMLP.py"
+    },
+    {
+      "function_name": "LLMNeuron.generate_response",
+      "purpose": "A method within the individual agent class responsible for generating an LLM-powered response to a given input.",
+      "file_hint": "code/demo/LLM_Neuron.py"
+    },
+    {
+      "function_name": "collaborate_rounds",
+      "purpose": "Manages the iterative communication and collaboration among the selected agents, handling message passing and dynamic interaction flow.",
+      "file_hint": "code/demo/LLMLP.py"
+    }
+  ],
+  "architecture_overview": "The DyLAN codebase appears to structure the framework with a central 'run_DyLAN.py' script for overall execution. Individual LLM agents are likely defined in 'LLM_Neuron.py' and instantiated or managed by a higher-level 'LLMLP.py' or 'CoLLMLP.py' module. This manager handles both the initial agent team optimization (selection based on importance scores) and the subsequent dynamic communication and collaboration among the selected agents. Dataset-specific folders ('MATH', 'MMLU', 'HumanEval') then adapt and apply this core DyLAN logic for their respective tasks and evaluations."
+}

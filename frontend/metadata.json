@@ -1,5 +1,5 @@
 
 {
-  "name": "Repo-Rover",
-  "description": "An application to help users understand research papers by navigating code repositories, allowing users to ask questions and receive relevant code snippets. The UI features a PDF viewer alongside an interactive chat panel powered by Gemini."
+  "name": "ArXini",
+  "description": "ArXini — Your AI research code companion. Helps users understand research papers by locating code repositories and answering questions with relevant code snippets."
 }

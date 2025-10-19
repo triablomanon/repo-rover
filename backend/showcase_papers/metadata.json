@@ -1,0 +1,44 @@
+{
+  "papers": [
+    {
+      "id": "2310.02170",
+      "title": "A Dynamic LLM-Powered Agent Network for Task-Oriented Agent Collaboration",
+      "authors": ["Zijun Liu", "Yanzhe Zhang", "Peng Li", "Yang Liu", "Diyi Yang"],
+      "arxiv_id": "2310.02170",
+      "summary": "DyLAN: A framework for dynamic LLM-powered agent collaboration with automatic team selection and adaptive communication structures. Achieves up to 25% accuracy improvement on MMLU tasks.",
+      "pdf_url": "http://arxiv.org/pdf/2310.02170v2",
+      "repo_url": "https://github.com/SALT-NLP/DYLAN",
+      "published": "2023-10-03"
+    },
+    {
+      "id": "1609.02907",
+      "title": "Semi-Supervised Classification with Graph Convolutional Networks",
+      "authors": ["Thomas N. Kipf", "Max Welling"],
+      "arxiv_id": "1609.02907",
+      "summary": "Foundational work on Graph Convolutional Networks (GCN) - a scalable approach for semi-supervised learning on graph-structured data that scales linearly with graph edges.",
+      "pdf_url": "http://arxiv.org/pdf/1609.02907v4",
+      "repo_url": "https://github.com/tkipf/gcn",
+      "published": "2016-09-09"
+    },
+    {
+      "id": "2510.07962",
+      "title": "LightReasoner: Can Small Language Models Teach Large Language Models Reasoning?",
+      "authors": ["Jingyuan Wang", "Yankai Chen", "Zhonghang Li", "Chao Huang"],
+      "arxiv_id": "2510.07962",
+      "summary": "A novel framework where smaller language models teach larger ones by revealing high-value reasoning moments. Improves accuracy by 28.1% while reducing time by 90% and token usage by 99%.",
+      "pdf_url": "http://arxiv.org/pdf/2510.07962v1",
+      "repo_url": "https://github.com/HKUDS/LightReasoner",
+      "published": "2025-10-11"
+    },
+    {
+      "id": "2405.16506",
+      "title": "GRAG: Graph Retrieval-Augmented Generation",
+      "authors": ["Yuntong Hu", "Zhihan Lei", "Zheng Zhang", "Bo Pan", "Chen Ling", "Liang Zhao"],
+      "arxiv_id": "2405.16506",
+      "summary": "Extends RAG to handle networked documents by retrieving textual subgraphs and integrating textual and topological information into LLMs for enhanced multi-hop reasoning.",
+      "pdf_url": "http://arxiv.org/pdf/2405.16506v3",
+      "repo_url": "https://github.com/HuieL/GRAG",
+      "published": "2024-05-26"
+    }
+  ]
+}

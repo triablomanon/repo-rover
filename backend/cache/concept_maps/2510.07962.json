@@ -1,0 +1,75 @@
+{
+  "main_concepts": [
+    {
+      "concept": "Expert-Amateur Contrastive Sampling",
+      "description": "The core method of identifying high-value reasoning moments by measuring the behavioral divergence between a stronger 'expert' LLM and a weaker 'amateur' SLM on the same problem.",
+      "likely_files": [
+        "LightR_sampling.py",
+        "analysis/llama_KL.py",
+        "analysis/PPL_analysis.py"
+      ],
+      "search_keywords": [
+        "expert_model",
+        "amateur_model",
+        "divergence",
+        "kl_divergence",
+        "sampling_stage",
+        "threshold"
+      ]
+    },
+    {
+      "concept": "Distilled Example Fine-tuning",
+      "description": "The second stage of the framework, where the expert model is fine-tuned using only the small, curated set of examples constructed from the high-value moments identified in the sampling stage.",
+      "likely_files": [
+        "LightR_finetuning.py",
+        "data_prep.py"
+      ],
+      "search_keywords": [
+        "SFT",
+        "fine-tuning",
+        "trainer",
+        "loss_mask",
+        "alignment",
+        "optimizer"
+      ]
+    },
+    {
+      "concept": "Efficiency through Strategic Token Selection",
+      "description": "The underlying principle that significant performance gains can be achieved with minimal computational cost by selectively training on a tiny fraction of tokens that hold the most learning value, rather than all tokens uniformly.",
+      "likely_files": [
+        "LightR_sampling.py",
+        "LightR_finetuning.py"
+      ],
+      "search_keywords": [
+        "token_selection",
+        "efficiency",
+        "high-value",
+        "loss_mask",
+        "sampled_problems"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "run_sampling or similar",
+      "purpose": "Orchestrates the process of feeding problems to both expert and amateur models to find and save divergent, high-value reasoning steps.",
+      "file_hint": "LightR_sampling.py"
+    },
+    {
+      "function_name": "calculate_divergence or kl_divergence",
+      "purpose": "Computes the statistical difference between the token probability distributions of the expert and amateur models, which is the core signal for sampling.",
+      "file_hint": "LightR_sampling.py"
+    },
+    {
+      "function_name": "Custom Trainer or training loop",
+      "purpose": "Implements the supervised fine-tuning (SFT) process on the distilled dataset, likely applying a custom loss function that focuses only on the high-value tokens.",
+      "file_hint": "LightR_finetuning.py"
+    },
+    {
+      "function_name": "merge_lora_weights",
+      "purpose": "Merges the trained low-rank adapters (from PEFT) back into the full model weights after fine-tuning is complete.",
+      "file_hint": "merge.py"
+    }
+  ],
+  "architecture_overview": "The codebase is structured around the two-stage process described in the paper. `LightR_sampling.py` implements the first stage: comparing expert and amateur models to generate a distilled dataset. `LightR_finetuning.py` implements the second stage: efficiently fine-tuning the expert model on this dataset. The separate `analysis/` directory contains scripts for validation and exploration of the core hypotheses (e.g., PPL and KL-divergence analysis), supporting the research claims. The presence of `merge.py` strongly suggests the use of Parameter-Efficient Fine-Tuning (PEFT) methods like LoRA."
+}

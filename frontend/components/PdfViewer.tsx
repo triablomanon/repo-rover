@@ -13,7 +13,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ pdfUrl, title, onClose }) => {
     <div className="w-1/2 flex-shrink-0 border-r border-gray-200 flex flex-col h-screen">
       <div className="flex-shrink-0 h-16 bg-gray-50 border-b border-gray-200 flex items-center justify-between px-4">
         <div className="flex items-center space-x-4">
-          <h2 className="text-sm font-medium truncate max-w-md" title={title}>
+          <h2 className="text-base font-semibold truncate max-w-md" title={title}>
             {title}
           </h2>
         </div>

@@ -1,8 +1,9 @@
 // ChatPanel.tsx - Chat interface component for Repo Rover
 
 import React, { useState, useRef, useEffect } from 'react';
-import { searchPaper, selectPaper, initPaper, sendChatMessage, resetSession } from '../services/geminiService';
-import type { Message, PaperInfo, PaperOption } from '../types';
+import { searchPaper, selectPaper, initPaper, sendChatMessage, resetSession, getShowcasePapers, initShowcasePaper } from '../services/geminiService';
+import type { Message, PaperInfo, PaperOption, ShowcasePaper } from '../types';
+import ShowcasePapers from './ShowcasePapers';
 import {
   HighlightIcon,
   AtSymbolIcon,
@@ -17,23 +18,34 @@ interface ChatPanelProps {
   isPaperVisible: boolean;
 }
 
-const WelcomeScreen: React.FC = () => (
-  <div className="text-center py-10">
-    <SparkleIcon className="mx-auto h-12 w-12 text-rose-500 mb-6" />
-    <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Repo Rover</h2>
-    <p className="text-gray-600 mb-8">
-      From research paper to running code in 60 seconds
+const WelcomeScreen: React.FC<{ 
+  showcasePapers: ShowcasePaper[]; 
+  onShowcaseSelect: (paper: ShowcasePaper) => void;
+  isLoadingShowcase: boolean;
+}> = ({ showcasePapers, onShowcaseSelect, isLoadingShowcase }) => (
+  <div className="text-center py-12">
+    <SparkleIcon className="mx-auto h-16 w-16 text-rose-500 mb-6" />
+    <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">Welcome to ArXini</h2>
+    <p className="text-lg text-slate-600 mb-8">
+      Deep Research, Decoded.
     </p>
 
-    <div className="p-4 space-y-4 max-w-2xl mx-auto">
-      <div className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-800 mb-2 text-lg">Get Started</h3>
-        <p className="text-sm text-gray-700 mb-4">
+    <div className="p-4 space-y-4 max-w-6xl mx-auto">
+      {/* Showcase Papers */}
+      <ShowcasePapers 
+        papers={showcasePapers}
+        onPaperSelect={onShowcaseSelect}
+        isLoading={isLoadingShowcase}
+      />
+      
+      <div className="bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200 rounded-2xl p-8 shadow-sm">
+        <h3 className="font-semibold text-slate-800 mb-4 text-xl">Get Started</h3>
+        <p className="text-base text-slate-700 mb-5">
           Enter the title or ArXiv ID of a research paper to analyze its code implementation.
         </p>
-        <div className="bg-white rounded-lg p-3 text-left">
-          <p className="text-xs text-gray-500 mb-1">Example queries:</p>
-          <ul className="text-sm text-gray-600 space-y-1">
+        <div className="bg-white rounded-lg p-4 text-left">
+          <p className="text-sm text-slate-500 mb-3 uppercase tracking-wide">Example queries</p>
+          <ul className="text-base text-slate-600 space-y-2">
             <li>• "Attention Is All You Need"</li>
             <li>• "1706.03762" (ArXiv ID)</li>
             <li>• "Graph Convolutional Networks"</li>
@@ -42,15 +54,15 @@ const WelcomeScreen: React.FC = () => (
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <HighlightIcon className="h-6 w-6 text-rose-600 mb-2" />
-          <h3 className="font-semibold text-gray-800">Gemini AI Search</h3>
-          <p className="text-sm text-gray-500">Intelligent paper discovery using Gemini</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <HighlightIcon className="h-7 w-7 text-rose-600 mb-3" />
+          <h3 className="font-semibold text-gray-800 text-base">Gemini AI Search</h3>
+          <p className="text-base text-gray-500 mt-1">Intelligent paper discovery using Gemini</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <AtSymbolIcon className="h-6 w-6 text-rose-600 mb-2" />
-          <h3 className="font-semibold text-gray-800">Code Analysis</h3>
-          <p className="text-sm text-gray-500">RAG-powered Q&A about implementations</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <AtSymbolIcon className="h-7 w-7 text-rose-600 mb-3" />
+          <h3 className="font-semibold text-gray-800 text-base">Code Analysis</h3>
+          <p className="text-base text-gray-500 mt-1">RAG-powered Q&A about implementations</p>
         </div>
       </div>
     </div>
@@ -77,11 +89,34 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
   const [awaitingPaperSelection, setAwaitingPaperSelection] = useState(false);
   const [paperOptions, setPaperOptions] = useState<PaperOption[]>([]);
 
+  // NEW: Showcase papers state
+  const [showcasePapers, setShowcasePapers] = useState<ShowcasePaper[]>([]);
+  const [isLoadingShowcase, setIsLoadingShowcase] = useState(true);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Load showcase papers on mount
+  useEffect(() => {
+    const loadShowcasePapers = async () => {
+      setIsLoadingShowcase(true);
+      try {
+        const result = await getShowcasePapers();
+        if (result.success && result.papers) {
+          setShowcasePapers(result.papers);
+        }
+      } catch (error) {
+        console.error('Failed to load showcase papers:', error);
+      } finally {
+        setIsLoadingShowcase(false);
+      }
+    };
+    
+    loadShowcasePapers();
+  }, []);
 
   // Simulate loading stage progression
   useEffect(() => {
@@ -136,10 +171,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
 
           // Show PDF viewer IMMEDIATELY with the selected paper info
           if (result.pdf_url && result.title) {
-            const paperInfo = {
+            const paperInfo: PaperInfo = {
               title: result.title,
-              arxiv_id: result.arxiv_id,
+              arxiv_id: result.arxiv_id || '',
+              authors: [],
+              summary: '',
               pdf_url: result.pdf_url,
+              published: '',
             };
             onPaperLoaded(paperInfo);
             onShowPaper();
@@ -201,13 +239,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
           setAwaitingPaperSelection(true);
           setPaperOptions(result.options);
 
-          const optionsText = result.options.map(opt =>
-            `${opt.index}. **${opt.title}**\n   ${opt.authors}\n   ArXiv: ${opt.arxiv_id}`
-          ).join('\n\n');
-
+          // Short AI message (do not dump full option text)
           const aiMessage: Message = {
             id: (Date.now() + 1).toString(),
-            text: `${result.message}\n\n${optionsText}\n\nReply with the number (1-${result.options.length}) or type "cancel".`,
+            text: `Found ${result.options.length} papers. Which one would you like to analyze?`,
             sender: 'ai',
           };
           setMessages((prev) => [...prev, aiMessage]);
@@ -215,11 +250,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
           // Direct match (ArXiv ID) - show PDF immediately, then initialize
 
           // Show PDF viewer IMMEDIATELY with the paper info
-          if (result.paper.pdf_url && result.paper.title) {
-            const paperInfo = {
+          if ((result.paper as any).pdf_url && result.paper.title) {
+            const paperInfo: PaperInfo = {
               title: result.paper.title,
               arxiv_id: result.paper.arxiv_id,
-              pdf_url: result.paper.pdf_url,
+              authors: [],
+              summary: '',
+              pdf_url: (result.paper as any).pdf_url,
+              published: '',
             };
             onPaperLoaded(paperInfo);
             onShowPaper();
@@ -275,16 +313,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
       const response = await sendChatMessage(currentInput);
 
       if (response.success && response.answer) {
-        let answerText = response.answer;
-
-        // Add source info if available
-        if (response.num_sources && response.num_sources > 0) {
-          answerText += `\n\n*Based on ${response.num_sources} code snippet${response.num_sources > 1 ? 's' : ''} (confidence: ${response.confidence})*`;
-        }
-
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: answerText,
+          text: response.answer,
           sender: 'ai',
         };
         setMessages((prev) => [...prev, aiMessage]);
@@ -325,6 +356,132 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
     }
   };
 
+  // Handler for showcase paper selection
+  const handleShowcaseSelect = async (paper: ShowcasePaper) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    try {
+      // Add user message showing which paper they selected
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text: `Explore: ${paper.title}`,
+        sender: 'user',
+      };
+      setMessages([userMessage]);
+      
+      // Initialize the showcase paper
+      const result = await initShowcasePaper(paper.arxiv_id);
+      
+      if (result.success && result.paper_info) {
+        setIsPaperInitialized(true);
+        setCurrentPaper(result.paper_info);
+        
+        // Show PDF immediately
+        onPaperLoaded(result.paper_info);
+        onShowPaper();
+        
+        // Add success message
+        const successMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: `✓ Ready to explore "${paper.title}"!\n\nI've analyzed ${result.indexed_files || 'the'} code files. Ask me anything about the implementation!`,
+          sender: 'ai',
+        };
+        setMessages((prev) => [...prev, successMessage]);
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: result.message || 'Failed to load showcase paper. Please try again.',
+          sender: 'ai',
+          isError: true,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('Error loading showcase paper:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm having trouble loading this paper. Please try again.",
+        sender: 'ai',
+        isError: true,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler for clicking the Select button on a paper option
+  const handleSelectOption = async (index: number) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const result = await selectPaper(index + 1);
+        if (result.selected && result.arxiv_id) {
+        setAwaitingPaperSelection(false);
+        setPaperOptions([]);
+
+        // Push a green confirmation message into chat
+        const confirmMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: `✓ Selected Paper: ${result.title}`,
+          sender: 'ai',
+        };
+        setMessages((prev) => [...prev, confirmMessage]);
+
+        // Show PDF viewer IMMEDIATELY with the selected paper info
+        if (result.pdf_url && result.title) {
+          const paperInfo: PaperInfo = {
+            title: result.title,
+            arxiv_id: result.arxiv_id || '',
+            authors: [],
+            summary: '',
+            pdf_url: result.pdf_url,
+            published: '',
+          };
+          onPaperLoaded(paperInfo);
+          onShowPaper();
+        }
+
+        // Initialize pipeline
+        setLoadingStage(0);
+        const initResult = await initPaper(result.arxiv_id || '');
+        if (initResult.success && initResult.paper_info) {
+          setIsPaperInitialized(true);
+          setCurrentPaper(initResult.paper_info);
+          onPaperLoaded(initResult.paper_info);
+
+          const successMessage: Message = {
+            id: (Date.now() + 2).toString(),
+            text: `✓ Code analysis complete! Indexed ${initResult.indexed_files} code files.\n\nAsk me anything about the implementation!`,
+            sender: 'ai',
+          };
+          setMessages((prev) => [...prev, successMessage]);
+        } else {
+          const errorMessage: Message = {
+            id: (Date.now() + 2).toString(),
+            text: initResult.message || 'Failed to initialize paper. Please try again.',
+            sender: 'ai',
+            isError: true,
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        }
+      } else if (result.message) {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: result.message,
+          sender: 'ai',
+          isError: !result.success,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      }
+    } catch (err) {
+      console.error('Select error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getPlaceholder = () => {
     if (awaitingPaperSelection) {
       return `Select 1-${paperOptions.length} or type "cancel"...`;
@@ -336,13 +493,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
   };
 
   return (
-    <div className={`flex flex-col h-screen bg-gray-50/50 ${isPaperVisible ? 'w-1/2' : 'w-full max-w-4xl mx-auto'}`}>
-      <header className="flex-shrink-0 h-16 border-b border-gray-200 flex items-center justify-between px-6">
-        <div>
-          <h1 className="font-semibold text-lg">Repo Rover</h1>
-          {currentPaper && (
-            <p className="text-xs text-gray-500 truncate max-w-md">{currentPaper.title}</p>
-          )}
+    <div className={`flex flex-col flex-1 h-screen bg-gradient-to-br from-slate-50 via-white to-rose-50/30 ${isPaperVisible ? 'lg:w-1/2' : 'w-full'}`}>
+      <header className="flex-shrink-0 h-20 border-b border-slate-200 flex items-center justify-between px-6 bg-white/90 backdrop-blur shadow-sm">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 truncate">ArXini - Your AI research code assistant</h1>
         </div>
         <div className="flex items-center gap-3">
           {currentPaper && !isPaperVisible && (
@@ -363,45 +517,81 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
           )}
           <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-white border border-gray-200 rounded-lg">
             <SparkleIcon className="w-4 h-4 text-blue-500" />
-            <span>Gemini 2.5 Flash</span>
+            <span className="text-slate-600">Powered by Gemini</span>
           </div>
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto p-6">
-        <div className="space-y-6">
-          {messages.length === 0 && !isLoading && <WelcomeScreen />}
+        <div className="max-w-5xl mx-auto space-y-6">
+          {messages.length === 0 && !isLoading && (
+            <WelcomeScreen 
+              showcasePapers={showcasePapers}
+              onShowcaseSelect={handleShowcaseSelect}
+              isLoadingShowcase={isLoadingShowcase}
+            />
+          )}
 
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
               {msg.sender === 'ai' && (
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white ${msg.isError ? 'bg-red-500' : 'bg-rose-500'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-md ${msg.isError ? 'bg-red-500' : 'bg-gradient-to-br from-rose-500 to-orange-500'}`}>
                   <SparkleIcon className="w-5 h-5" />
                 </div>
               )}
               <div
-                className={`max-w-lg px-4 py-3 rounded-2xl ${
+                className={`max-w-2xl px-5 py-3.5 rounded-2xl shadow-sm ${
                   msg.sender === 'user'
-                    ? 'bg-blue-500 text-white rounded-br-lg'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-br-lg'
                     : msg.isError
                     ? 'bg-red-50 border border-red-200 text-red-800 rounded-bl-lg'
-                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-lg'
+                    : 'bg-white border border-slate-200 text-slate-900 rounded-bl-lg'
                 }`}
               >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.text}</p>
               </div>
             </div>
           ))}
 
+          {/* Render clickable paper option cards when awaiting selection */}
+          {awaitingPaperSelection && paperOptions.length > 0 && (
+            <div className="mt-4 grid grid-cols-1 gap-3 max-w-5xl mx-auto">
+              {paperOptions.map((opt, i) => (
+                <div key={opt.index} className="flex items-start justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="text-base text-slate-500 font-semibold">{opt.index}.</div>
+                      <div className="font-semibold text-slate-900 text-lg">{opt.title}</div>
+                    </div>
+                    <div className="text-base text-slate-700 mt-2 font-medium">{opt.authors}</div>
+                    <div className="text-base text-blue-600 mt-1.5 hover:text-blue-800 transition-colors">
+                      <a href={`https://arxiv.org/abs/${opt.arxiv_id}`} target="_blank" rel="noreferrer">arXiv:{opt.arxiv_id}</a>
+                    </div>
+                    {opt.summary && <div className="text-base text-slate-600 mt-2 leading-relaxed">{opt.summary}</div>}
+                  </div>
+                  <div className="flex flex-col items-end ml-4">
+                    <button
+                      onClick={() => handleSelectOption(i)}
+                      disabled={isLoading}
+                      className="px-5 py-2.5 text-base font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 shadow-sm transition-all"
+                    >
+                      Select
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {isLoading && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center flex-shrink-0 text-white shadow-md">
                 <SparkleIcon className="w-5 h-5 animate-pulse" />
               </div>
-              <div className="max-w-lg px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-800 rounded-bl-lg">
+              <div className="max-w-2xl px-5 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-900 rounded-bl-lg shadow-sm">
                 {!isPaperInitialized && !awaitingPaperSelection ? (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">
+                    <p className="text-base font-medium text-slate-700 mb-2">
                       {LoadingStages[loadingStage]}
                     </p>
                     <div className="flex items-center space-x-1">
@@ -409,13 +599,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
                       <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                       <div className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"></div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">This may take 30-60 seconds...</p>
+                    <p className="text-base text-slate-500 mt-2">This may take 30-60 seconds...</p>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
                   </div>
                 )}
               </div>
@@ -425,20 +615,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onPaperLoaded, onShowPaper, isPap
         </div>
       </main>
 
-      <footer className="flex-shrink-0 p-4 bg-gray-50/50">
-        <div className="max-w-3xl mx-auto">
+      <footer className="flex-shrink-0 p-4 bg-white/80 backdrop-blur border-t border-slate-200">
+        <div className="max-w-5xl mx-auto">
           <form onSubmit={handleSendMessage} className="relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={getPlaceholder()}
-              className="w-full pl-4 pr-14 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+              className="w-full pl-5 pr-16 py-4 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm"
               disabled={isLoading}
             />
             <button
               type="submit"
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-gray-800 text-white rounded-lg flex items-center justify-center hover:bg-gray-900 disabled:bg-gray-300 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center hover:from-blue-600 hover:to-blue-700 disabled:from-slate-300 disabled:to-slate-400 transition-all shadow-sm"
               disabled={!input.trim() || isLoading}
             >
               <ArrowUpIcon className="w-5 h-5 transform -rotate-90" />

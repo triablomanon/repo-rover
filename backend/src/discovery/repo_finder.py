@@ -5,6 +5,7 @@ import os
 import re
 from google import genai
 from google.genai import types
+from utils.config import Config
 from typing import Optional, Dict
 from pathlib import Path
 from rich.console import Console
@@ -39,7 +40,8 @@ class RepoFinder:
         else:
             # Configure Gemini client with new SDK
             self.client = genai.Client(api_key=self.api_key)
-            self.model_name = "gemini-2.0-flash-exp"
+            # Use configured model (defaults to gemini-2.5-flash)
+            self.model_name = getattr(Config, 'GEMINI_MODEL', 'gemini-2.5-flash')
 
     def extract_github_from_pdf(self, pdf_path: Path) -> Optional[str]:
         """

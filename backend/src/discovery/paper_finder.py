@@ -10,8 +10,10 @@ import re
 from pathlib import Path
 from typing import Optional, Dict, List
 from rich.console import Console
+from rich.table import Table
 from google import genai
 from google.genai import types
+from utils.config import Config
 
 console = Console()
 
@@ -29,7 +31,8 @@ class PaperFinder:
             api_key = os.getenv("GEMINI_API_KEY")
             if api_key:
                 self.genai_client = genai.Client(api_key=api_key)
-                self.gemini_model_name = "gemini-2.5-pro"  # use Pro for more consistent JSON generation
+                # Use the globally configured model (defaults to gemini-2.5-flash)
+                self.gemini_model_name = getattr(Config, 'GEMINI_MODEL', 'gemini-2.5-flash')
                 console.print(f"[green]Gemini initialized with model {self.gemini_model_name}[/green]")
             else:
                 self.genai_client = None
@@ -140,7 +143,6 @@ Example output:
             config = types.GenerateContentConfig(
                 temperature=0.1,
                 max_output_tokens=4096,
-                response_mime_type="application/json",
                 # FIX: Add the tools array to enable Grounding
                 tools=[search_tool],
             )
@@ -315,14 +317,23 @@ Example output:
                 paper_list = self.search_paper(query_or_id, max_results=3)
 
                 while True:
+                    # If no results, inform the user
                     if not paper_list:
                         console.print("\n[yellow]No results on ArXiv.[/yellow]")
                     else:
-                        console.print("\n[bold yellow]Select the correct paper:[/bold yellow]")
+                        # Display results in a Rich Table
+                        table = Table(title="Paper Results", show_lines=False)
+                        table.add_column("No.", justify="right", style="cyan", width=4)
+                        table.add_column("Title", style="white")
+                        table.add_column("Authors", style="magenta", width=30)
+                        table.add_column("ArXiv ID", style="dim", width=16)
+
                         for i, p in enumerate(paper_list):
-                            authors = ", ".join(p.get("authors", [])[:2])
-                            console.print(f"[cyan]{i+1}.[/cyan] {p['title']} ({authors}...)")
-                            console.print(f"    [dim]{p.get('arxiv_id','N/A')}[/dim]")
+                            authors = ", ".join(p.get("authors", [])[:3])
+                            table.add_row(str(i + 1), p.get("title", "Untitled"), authors, p.get("arxiv_id", "N/A"))
+
+                        console.print()
+                        console.print(table)
 
                     choice = input("\nEnter [1-3], (s)kip, or (g)emini search: ").strip().lower()
 
@@ -336,7 +347,10 @@ Example output:
                     try:
                         idx = int(choice) - 1
                         if paper_list and 0 <= idx < len(paper_list):
-                            sel_id = paper_list[idx].get("arxiv_id")
+                            sel = paper_list[idx]
+                            sel_id = sel.get("arxiv_id")
+                            # Print a clear confirmation banner with the selected paper title
+                            console.print(f"[green]✓ Selected Paper: {sel.get('title', 'Untitled')}[/green]")
                             if sel_id:
                                 final_paper_info = self.get_paper_by_id(sel_id)
                             break

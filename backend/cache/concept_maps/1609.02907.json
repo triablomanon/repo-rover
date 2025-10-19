@@ -1,0 +1,90 @@
+{
+  "main_concepts": [
+    {
+      "concept": "Graph Convolutional Layer",
+      "description": "The core propagation rule based on a localized first-order approximation of spectral graph convolutions. It aggregates feature information from a node's immediate neighbors.",
+      "likely_files": [
+        "gcn/layers.py",
+        "gcn/models.py"
+      ],
+      "search_keywords": [
+        "GraphConvolution",
+        "sparse_tensor_dense_matmul",
+        "matmul",
+        "activation"
+      ]
+    },
+    {
+      "concept": "Adjacency Matrix Preprocessing",
+      "description": "The specific normalization scheme applied to the graph's adjacency matrix, which involves adding self-loops and applying symmetric normalization (D̃⁻¹/² Ã D̃⁻¹/²). This is crucial for numerical stability and proper information propagation.",
+      "likely_files": [
+        "gcn/utils.py"
+      ],
+      "search_keywords": [
+        "preprocess_adj",
+        "normalize_adj",
+        "coo_matrix",
+        "add_self_loops",
+        "degree"
+      ]
+    },
+    {
+      "concept": "Semi-Supervised Learning Framework",
+      "description": "The model is trained on a small subset of labeled nodes, but the graph structure and features of all nodes are used. The loss and accuracy are calculated using masks to include only the training, validation, or test nodes.",
+      "likely_files": [
+        "gcn/train.py",
+        "gcn/metrics.py",
+        "gcn/utils.py"
+      ],
+      "search_keywords": [
+        "mask",
+        "train_mask",
+        "val_mask",
+        "masked_softmax_cross_entropy",
+        "masked_accuracy"
+      ]
+    },
+    {
+      "concept": "Multi-layer GCN Architecture",
+      "description": "The full model architecture, which stacks multiple Graph Convolutional Layers to learn hierarchical node representations. A typical model consists of two such layers followed by a softmax activation for classification.",
+      "likely_files": [
+        "gcn/models.py"
+      ],
+      "search_keywords": [
+        "GCN",
+        "Model",
+        "layers",
+        "placeholders",
+        "build"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "GraphConvolution (class)",
+      "purpose": "Defines a single graph convolutional layer, implementing the core matrix multiplication with the normalized adjacency matrix, features, and weights.",
+      "file_hint": "gcn/layers.py"
+    },
+    {
+      "function_name": "GCN (class)",
+      "purpose": "Constructs the full multi-layer Graph Convolutional Network model by stacking GraphConvolution layers.",
+      "file_hint": "gcn/models.py"
+    },
+    {
+      "function_name": "load_data() & preprocess_adj()",
+      "purpose": "Functions to load the dataset (adjacency matrix, features, labels) and perform the critical preprocessing and normalization of the adjacency matrix.",
+      "file_hint": "gcn/utils.py"
+    },
+    {
+      "function_name": "masked_softmax_cross_entropy() & masked_accuracy()",
+      "purpose": "Calculates the loss and accuracy metrics for only a subset of nodes (e.g., training set), which is essential for the semi-supervised setting.",
+      "file_hint": "gcn/metrics.py"
+    },
+    {
+      "function_name": "train.py (script)",
+      "purpose": "The main script that orchestrates the entire process: loading data, creating the model, running the training loop, and evaluating the results.",
+      "file_hint": "gcn/train.py"
+    }
+  ],
+  "architecture_overview": "The code is structured modularly. The main entry point is `gcn/train.py`, which handles the training and evaluation loop. It calls `gcn/utils.py` to load and preprocess the graph data, including the crucial symmetric normalization of the adjacency matrix. The GCN model itself is defined in `gcn/models.py`, which stacks custom `GraphConvolution` layers from `gcn/layers.py`. The semi-supervised learning aspect is managed through boolean masks, which are used by functions in `gcn/metrics.py` to compute loss and accuracy on specific subsets of nodes (train/validation/test)."
+}

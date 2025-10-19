@@ -1,6 +1,6 @@
 // geminiService.ts - Service for interacting with Repo Rover API
 
-import type { ChatResponse, InitPaperResponse, SessionStatus, PaperInfo, SearchPaperResponse, SelectPaperResponse } from '../types';
+import type { ChatResponse, InitPaperResponse, SessionStatus, PaperInfo, SearchPaperResponse, SelectPaperResponse, ShowcasePapersResponse, InitShowcasePaperResponse } from '../types';
 
 const API_URL = (import.meta as any).env.VITE_API_URL ?? "http://localhost:5000/api";
 
@@ -199,5 +199,49 @@ export const resetSession = async (): Promise<string> => {
   } catch (err) {
     console.error("Error resetting session:", err);
     throw err;
+  }
+};
+
+/**
+ * Get showcase papers (featured papers on homepage)
+ */
+export const getShowcasePapers = async (): Promise<ShowcasePapersResponse> => {
+  try {
+    const res = await fetch(`${API_URL}/showcase-papers`);
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error fetching showcase papers:", err);
+    return {
+      success: false,
+      error: "Network error",
+      message: "Failed to load showcase papers",
+      papers: []
+    };
+  }
+};
+
+/**
+ * Initialize a showcase paper (pre-indexed, instant load)
+ */
+export const initShowcasePaper = async (arxivId: string): Promise<InitShowcasePaperResponse> => {
+  try {
+    const sessionId = await getSessionId();
+
+    const res = await fetch(`${API_URL}/init-showcase-paper`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, arxiv_id: arxivId }),
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error initializing showcase paper:", err);
+    return {
+      success: false,
+      error: "Network error",
+      message: "Failed to initialize showcase paper",
+    };
   }
 };

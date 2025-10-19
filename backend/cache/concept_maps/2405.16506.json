@@ -1,0 +1,73 @@
+{
+  "main_concepts": [
+    {
+      "concept": "Textual Subgraph Retrieval",
+      "description": "A core component of GRAG that retrieves relevant textual subgraphs from a large graph to provide context for the LLM. The paper mentions a novel 'divide-and-conquer' strategy for efficient retrieval.",
+      "likely_files": [
+        "src/utils/graph_retrieval.py",
+        "train.py"
+      ],
+      "search_keywords": [
+        "graph_retrieval",
+        "retrieve_subgraph",
+        "search_subgraph",
+        "divide_and_conquer"
+      ]
+    },
+    {
+      "concept": "Graph Context-aware Generation",
+      "description": "The process of integrating the retrieved subgraph's textual and topological information into the LLM. The paper describes using two complementary views: a 'text view' for node content and a 'graph view' for structural information.",
+      "likely_files": [
+        "src/model/graph_llm.py",
+        "src/model/gnn.py",
+        "src/model/llm.py"
+      ],
+      "search_keywords": [
+        "GraphLLM",
+        "GNN",
+        "forward",
+        "text_view",
+        "graph_view",
+        "generate"
+      ]
+    },
+    {
+      "concept": "End-to-End Training with Optional LLM Fine-tuning",
+      "description": "The training process for the GRAG model. The README specifies two modes: training with a frozen LLM, or fine-tuning the LLM using LoRA for better adaptation to the graph context.",
+      "likely_files": [
+        "train.py",
+        "src/utils/lm_modeling.py"
+      ],
+      "search_keywords": [
+        "train",
+        "LoRA",
+        "llm_frozen",
+        "optimizer",
+        "loss"
+      ]
+    }
+  ],
+  "key_functions": [
+    {
+      "function_name": "GraphLLM",
+      "purpose": "The main model class that integrates the Graph Neural Network (GNN) and the Large Language Model (LLM). It likely orchestrates the encoding of both the graph structure and text to generate the final output.",
+      "file_hint": "src/model/graph_llm.py"
+    },
+    {
+      "function_name": "GraphRetriever or similar retrieval function",
+      "purpose": "Implements the subgraph retrieval logic. This function takes a query and the full graph as input and returns a smaller, relevant subgraph for the LLM to process.",
+      "file_hint": "src/utils/graph_retrieval.py"
+    },
+    {
+      "function_name": "GNN",
+      "purpose": "A Graph Neural Network model (e.g., GCN, GAT) used to encode the topological structure of the retrieved subgraph, producing embeddings for the 'graph view'.",
+      "file_hint": "src/model/gnn.py"
+    },
+    {
+      "function_name": "main (in train.py)",
+      "purpose": "The main training loop that handles data loading, model initialization, forward and backward passes, optimization, and saving checkpoints, implementing the training strategies from the README.",
+      "file_hint": "train.py"
+    }
+  ],
+  "architecture_overview": "The codebase is structured around a central 'train.py' script that orchestrates the GRAG pipeline. Data preprocessing and loading are handled by modules in 'src/dataset/'. The core logic is split into a retrieval step and a generation step. The 'src/utils/graph_retrieval.py' module is responsible for finding a relevant subgraph for a given query. This subgraph is then passed to the main 'GraphLLM' model defined in 'src/model/graph_llm.py'. This model composes a GNN from 'src/model/gnn.py' (to process graph structure) and an LLM from 'src/model/llm.py' (to process text and generate answers), effectively combining the 'graph view' and 'text view' described in the paper."
+}
