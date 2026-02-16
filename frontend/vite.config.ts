@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     // This proxies API requests to your backend server during development
     proxy: {
-      '/api': 'http://localhost:5000' // Assuming your backend runs on port 5000
+      '/api': 'http://localhost:5001'
     }
   }
 });
