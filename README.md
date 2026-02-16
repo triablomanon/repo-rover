@@ -208,7 +208,7 @@ The application uses three levels of caching to optimize performance:
 
 Once a paper has been indexed, subsequent queries skip the expensive discovery and indexing steps entirely.
 
-## Deployment
+## Deployment (WIP)
 
 ### Railway
 
